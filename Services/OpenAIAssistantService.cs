@@ -11,8 +11,8 @@ namespace BattleCode.Services
 {
     public class OpenAIAssistantService
     {
-        private readonly string _apiKey = "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"; // 請填你自己的 Key
-        private readonly string _assistantId = "asst_I0K1C8wuaoEgeQOCf8wk1Xyv";
+        private readonly string _apiKey = ""; // 請填你自己的 Key
+        private readonly string _assistantId = "";// 請填你自己的 Key
         // 呼叫 OpenAI API 產生多題程式題目
         public async Task<List<GeneratedProblem>> GenerateProblemsAsync(int count, string difficulty, string language)
         {

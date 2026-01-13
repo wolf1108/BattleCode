@@ -12,8 +12,8 @@ public class AIAnalysisService
     private readonly HttpClient _httpClient;// HttpClient 用來呼叫 OpenAI API
 
     // 建議改成從設定檔注入
-    private readonly string _apiKey = "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"; // 建議放入 appsettings
-    private readonly string _assistantId = "asst_I0K1C8wuaoEgeQOCf8wk1Xyv";
+    private readonly string _apiKey = ""; // 自己key
+    private readonly string _assistantId = ""; // 自己key
 
     public AIAnalysisService(DatabaseEntities db)
     {

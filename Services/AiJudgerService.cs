@@ -10,8 +10,10 @@ namespace BattleCode.Services
 {
     public class AiJudgerService
     {
-        private readonly string _apiKey = "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"; // 建議放入 appsettings
-        private readonly string _assistantId = "asst_I0K1C8wuaoEgeQOCf8wk1Xyv";
+
+            // 建議改成從設定檔注入
+            private readonly string _apiKey = ""; // 自己key
+            private readonly string _assistantId = ""; // 自己key
 
         // 呼叫 OpenAI AI 助理，判斷使用者提交的程式碼是否正確
         public async Task<JudgeResult> JudgeCodeAsync(string code, Problems problem, string language)
