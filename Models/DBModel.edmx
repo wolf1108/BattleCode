@@ -1,0 +1,520 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="DatabaseModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Matches">
+          <Key>
+            <PropertyRef Name="MatchId" />
+          </Key>
+          <Property Name="MatchId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Player1Id" Type="int" Nullable="false" />
+          <Property Name="Player2Id" Type="int" />
+          <Property Name="StartedAt" Type="datetime" />
+          <Property Name="EndedAt" Type="datetime" />
+          <Property Name="MatchStatus" Type="varchar" MaxLength="20" />
+          <Property Name="WinnerId" Type="int" />
+          <Property Name="IsPractice" Type="bit" />
+          <Property Name="IsDraw" Type="bit" />
+          <Property Name="Mode" Type="varchar" MaxLength="20" />
+          <Property Name="Player1Score" Type="int" />
+          <Property Name="Player2Score" Type="int" />
+          <Property Name="Player1CorrectCount" Type="int" />
+          <Property Name="Player2CorrectCount" Type="int" />
+          <Property Name="Player1Rank" Type="int" />
+          <Property Name="Player2Rank" Type="int" />
+          <Property Name="Language" Type="varchar" MaxLength="20" />
+        </EntityType>
+        <EntityType Name="Problems">
+          <Key>
+            <PropertyRef Name="ProblemId" />
+          </Key>
+          <Property Name="ProblemId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TagName" Type="nvarchar" MaxLength="50" />
+          <Property Name="Difficulty" Type="varchar" MaxLength="20" />
+          <Property Name="Title" Type="nvarchar" MaxLength="100" />
+          <Property Name="Language" Type="varchar" MaxLength="20" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="InputFormat" Type="nvarchar(max)" />
+          <Property Name="OutputFormat" Type="nvarchar(max)" />
+          <Property Name="SampleInputs" Type="nvarchar(max)" />
+          <Property Name="SampleOutputs" Type="nvarchar(max)" />
+          <Property Name="CreatedAt" Type="datetime" />
+          <Property Name="MatchId" Type="int" />
+          <Property Name="ProblemOrder" Type="int" />
+        </EntityType>
+        <EntityType Name="Submissions">
+          <Key>
+            <PropertyRef Name="SubmissionId" />
+          </Key>
+          <Property Name="SubmissionId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="MatchId" Type="int" Nullable="false" />
+          <Property Name="ProblemId" Type="int" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="Language" Type="varchar" MaxLength="20" />
+          <Property Name="Code" Type="nvarchar(max)" />
+          <Property Name="SubmittedAt" Type="datetime" />
+          <Property Name="Result" Type="varchar" MaxLength="20" />
+          <Property Name="ExecutionTimeMs" Type="int" />
+          <Property Name="Output" Type="nvarchar(max)" />
+          <Property Name="ErrorMessage" Type="nvarchar(max)" />
+          <Property Name="HintText" Type="nvarchar(max)" />
+          <Property Name="AIAnalysis" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Username" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="PasswordHash" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="DisplayName" Type="nvarchar" MaxLength="50" />
+          <Property Name="UserRole" Type="varchar" MaxLength="20" />
+          <Property Name="PreferredLanguage" Type="varchar" MaxLength="20" />
+          <Property Name="Rating" Type="int" />
+          <Property Name="CreatedAt" Type="datetime" />
+          <Property Name="LoginProvider" Type="nvarchar" MaxLength="50" />
+          <Property Name="AI" Type="nvarchar(max)" />
+          <Property Name="pic" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <Association Name="FK__Matches__Player1__6EC0713C">
+          <End Role="Users" Type="Self.Users" Multiplicity="1" />
+          <End Role="Matches" Type="Self.Matches" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Matches">
+              <PropertyRef Name="Player1Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Matches__Player2__6FB49575">
+          <End Role="Users" Type="Self.Users" Multiplicity="0..1" />
+          <End Role="Matches" Type="Self.Matches" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Matches">
+              <PropertyRef Name="Player2Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Matches__WinnerI__70A8B9AE">
+          <End Role="Users" Type="Self.Users" Multiplicity="0..1" />
+          <End Role="Matches" Type="Self.Matches" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Matches">
+              <PropertyRef Name="WinnerId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Submissio__Match__74794A92">
+          <End Role="Matches" Type="Self.Matches" Multiplicity="1" />
+          <End Role="Submissions" Type="Self.Submissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Matches">
+              <PropertyRef Name="MatchId" />
+            </Principal>
+            <Dependent Role="Submissions">
+              <PropertyRef Name="MatchId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Submissio__Probl__756D6ECB">
+          <End Role="Problems" Type="Self.Problems" Multiplicity="1" />
+          <End Role="Submissions" Type="Self.Submissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Problems">
+              <PropertyRef Name="ProblemId" />
+            </Principal>
+            <Dependent Role="Submissions">
+              <PropertyRef Name="ProblemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Submissio__UserI__76619304">
+          <End Role="Users" Type="Self.Users" Multiplicity="1" />
+          <End Role="Submissions" Type="Self.Submissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Submissions">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Problems_Matches">
+          <End Role="Matches" Type="Self.Matches" Multiplicity="0..1" />
+          <End Role="Problems" Type="Self.Problems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Matches">
+              <PropertyRef Name="MatchId" />
+            </Principal>
+            <Dependent Role="Problems">
+              <PropertyRef Name="MatchId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="DatabaseModelStoreContainer">
+          <EntitySet Name="Matches" EntityType="Self.Matches" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Problems" EntityType="Self.Problems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Submissions" EntityType="Self.Submissions" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__Matches__Player1__6EC0713C" Association="Self.FK__Matches__Player1__6EC0713C">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Matches" EntitySet="Matches" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Matches__Player2__6FB49575" Association="Self.FK__Matches__Player2__6FB49575">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Matches" EntitySet="Matches" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Matches__WinnerI__70A8B9AE" Association="Self.FK__Matches__WinnerI__70A8B9AE">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Matches" EntitySet="Matches" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Submissio__Match__74794A92" Association="Self.FK__Submissio__Match__74794A92">
+            <End Role="Matches" EntitySet="Matches" />
+            <End Role="Submissions" EntitySet="Submissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Submissio__Probl__756D6ECB" Association="Self.FK__Submissio__Probl__756D6ECB">
+            <End Role="Problems" EntitySet="Problems" />
+            <End Role="Submissions" EntitySet="Submissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Submissio__UserI__76619304" Association="Self.FK__Submissio__UserI__76619304">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Submissions" EntitySet="Submissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Problems_Matches" Association="Self.FK_Problems_Matches">
+            <End Role="Matches" EntitySet="Matches" />
+            <End Role="Problems" EntitySet="Problems" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="DatabaseModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="DatabaseEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Matches" EntityType="DatabaseModel.Matches" />
+          <EntitySet Name="Problems" EntityType="DatabaseModel.Problems" />
+          <EntitySet Name="Submissions" EntityType="DatabaseModel.Submissions" />
+          <EntitySet Name="Users" EntityType="DatabaseModel.Users" />
+          <AssociationSet Name="FK__Matches__Player1__6EC0713C" Association="DatabaseModel.FK__Matches__Player1__6EC0713C">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Matches" EntitySet="Matches" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Matches__Player2__6FB49575" Association="DatabaseModel.FK__Matches__Player2__6FB49575">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Matches" EntitySet="Matches" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Matches__WinnerI__70A8B9AE" Association="DatabaseModel.FK__Matches__WinnerI__70A8B9AE">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Matches" EntitySet="Matches" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Submissio__Match__74794A92" Association="DatabaseModel.FK__Submissio__Match__74794A92">
+            <End Role="Matches" EntitySet="Matches" />
+            <End Role="Submissions" EntitySet="Submissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Submissio__Probl__756D6ECB" Association="DatabaseModel.FK__Submissio__Probl__756D6ECB">
+            <End Role="Problems" EntitySet="Problems" />
+            <End Role="Submissions" EntitySet="Submissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Submissio__UserI__76619304" Association="DatabaseModel.FK__Submissio__UserI__76619304">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Submissions" EntitySet="Submissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Problems_Matches" Association="DatabaseModel.FK_Problems_Matches">
+            <End Role="Matches" EntitySet="Matches" />
+            <End Role="Problems" EntitySet="Problems" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Matches">
+          <Key>
+            <PropertyRef Name="MatchId" />
+          </Key>
+          <Property Name="MatchId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Player1Id" Type="Int32" Nullable="false" />
+          <Property Name="Player2Id" Type="Int32" />
+          <Property Name="StartedAt" Type="DateTime" Precision="3" />
+          <Property Name="EndedAt" Type="DateTime" Precision="3" />
+          <Property Name="MatchStatus" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="WinnerId" Type="Int32" />
+          <Property Name="IsPractice" Type="Boolean" />
+          <Property Name="IsDraw" Type="Boolean" />
+          <Property Name="Mode" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Player1Score" Type="Int32" />
+          <Property Name="Player2Score" Type="Int32" />
+          <Property Name="Player1CorrectCount" Type="Int32" />
+          <Property Name="Player2CorrectCount" Type="Int32" />
+          <Property Name="Player1Rank" Type="Int32" />
+          <Property Name="Player2Rank" Type="Int32" />
+          <NavigationProperty Name="Users" Relationship="DatabaseModel.FK__Matches__Player1__6EC0713C" FromRole="Matches" ToRole="Users" />
+          <NavigationProperty Name="Users1" Relationship="DatabaseModel.FK__Matches__Player2__6FB49575" FromRole="Matches" ToRole="Users" />
+          <NavigationProperty Name="Users2" Relationship="DatabaseModel.FK__Matches__WinnerI__70A8B9AE" FromRole="Matches" ToRole="Users" />
+          <NavigationProperty Name="Submissions" Relationship="DatabaseModel.FK__Submissio__Match__74794A92" FromRole="Matches" ToRole="Submissions" />
+          <NavigationProperty Name="Problems" Relationship="DatabaseModel.FK_Problems_Matches" FromRole="Matches" ToRole="Problems" />
+          <Property Name="Language" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="Problems">
+          <Key>
+            <PropertyRef Name="ProblemId" />
+          </Key>
+          <Property Name="ProblemId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TagName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Difficulty" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Language" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="InputFormat" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="OutputFormat" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SampleInputs" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SampleOutputs" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedAt" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Submissions" Relationship="DatabaseModel.FK__Submissio__Probl__756D6ECB" FromRole="Problems" ToRole="Submissions" />
+          <Property Name="MatchId" Type="Int32" />
+          <Property Name="ProblemOrder" Type="Int32" />
+          <NavigationProperty Name="Matches" Relationship="DatabaseModel.FK_Problems_Matches" FromRole="Problems" ToRole="Matches" />
+        </EntityType>
+        <EntityType Name="Submissions">
+          <Key>
+            <PropertyRef Name="SubmissionId" />
+          </Key>
+          <Property Name="SubmissionId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="MatchId" Type="Int32" Nullable="false" />
+          <Property Name="ProblemId" Type="Int32" Nullable="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="Language" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Code" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SubmittedAt" Type="DateTime" Precision="3" />
+          <Property Name="Result" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="ExecutionTimeMs" Type="Int32" />
+          <Property Name="Output" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ErrorMessage" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="HintText" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="AIAnalysis" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Matches" Relationship="DatabaseModel.FK__Submissio__Match__74794A92" FromRole="Submissions" ToRole="Matches" />
+          <NavigationProperty Name="Problems" Relationship="DatabaseModel.FK__Submissio__Probl__756D6ECB" FromRole="Submissions" ToRole="Problems" />
+          <NavigationProperty Name="Users" Relationship="DatabaseModel.FK__Submissio__UserI__76619304" FromRole="Submissions" ToRole="Users" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Username" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="PasswordHash" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="DisplayName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="UserRole" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="PreferredLanguage" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Rating" Type="Int32" />
+          <Property Name="CreatedAt" Type="DateTime" Precision="3" />
+          <Property Name="LoginProvider" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Matches" Relationship="DatabaseModel.FK__Matches__Player1__6EC0713C" FromRole="Users" ToRole="Matches" />
+          <NavigationProperty Name="Matches1" Relationship="DatabaseModel.FK__Matches__Player2__6FB49575" FromRole="Users" ToRole="Matches" />
+          <NavigationProperty Name="Matches2" Relationship="DatabaseModel.FK__Matches__WinnerI__70A8B9AE" FromRole="Users" ToRole="Matches" />
+          <NavigationProperty Name="Submissions" Relationship="DatabaseModel.FK__Submissio__UserI__76619304" FromRole="Users" ToRole="Submissions" />
+          <Property Name="AI" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="pic" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <Association Name="FK__Matches__Player1__6EC0713C">
+          <End Type="DatabaseModel.Users" Role="Users" Multiplicity="1" />
+          <End Type="DatabaseModel.Matches" Role="Matches" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Matches">
+              <PropertyRef Name="Player1Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Matches__Player2__6FB49575">
+          <End Type="DatabaseModel.Users" Role="Users" Multiplicity="0..1" />
+          <End Type="DatabaseModel.Matches" Role="Matches" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Matches">
+              <PropertyRef Name="Player2Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Matches__WinnerI__70A8B9AE">
+          <End Type="DatabaseModel.Users" Role="Users" Multiplicity="0..1" />
+          <End Type="DatabaseModel.Matches" Role="Matches" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Matches">
+              <PropertyRef Name="WinnerId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Submissio__Match__74794A92">
+          <End Type="DatabaseModel.Matches" Role="Matches" Multiplicity="1" />
+          <End Type="DatabaseModel.Submissions" Role="Submissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Matches">
+              <PropertyRef Name="MatchId" />
+            </Principal>
+            <Dependent Role="Submissions">
+              <PropertyRef Name="MatchId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Submissio__Probl__756D6ECB">
+          <End Type="DatabaseModel.Problems" Role="Problems" Multiplicity="1" />
+          <End Type="DatabaseModel.Submissions" Role="Submissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Problems">
+              <PropertyRef Name="ProblemId" />
+            </Principal>
+            <Dependent Role="Submissions">
+              <PropertyRef Name="ProblemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Submissio__UserI__76619304">
+          <End Type="DatabaseModel.Users" Role="Users" Multiplicity="1" />
+          <End Type="DatabaseModel.Submissions" Role="Submissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="UserId" />
+            </Principal>
+            <Dependent Role="Submissions">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Problems_Matches">
+          <End Type="DatabaseModel.Matches" Role="Matches" Multiplicity="0..1" />
+          <End Type="DatabaseModel.Problems" Role="Problems" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Matches">
+              <PropertyRef Name="MatchId" />
+            </Principal>
+            <Dependent Role="Problems">
+              <PropertyRef Name="MatchId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="DatabaseModelStoreContainer" CdmEntityContainer="DatabaseEntities">
+          <EntitySetMapping Name="Matches">
+            <EntityTypeMapping TypeName="DatabaseModel.Matches">
+              <MappingFragment StoreEntitySet="Matches">
+                <ScalarProperty Name="Language" ColumnName="Language" />
+                <ScalarProperty Name="Player2Rank" ColumnName="Player2Rank" />
+                <ScalarProperty Name="Player1Rank" ColumnName="Player1Rank" />
+                <ScalarProperty Name="Player2CorrectCount" ColumnName="Player2CorrectCount" />
+                <ScalarProperty Name="Player1CorrectCount" ColumnName="Player1CorrectCount" />
+                <ScalarProperty Name="Player2Score" ColumnName="Player2Score" />
+                <ScalarProperty Name="Player1Score" ColumnName="Player1Score" />
+                <ScalarProperty Name="Mode" ColumnName="Mode" />
+                <ScalarProperty Name="IsDraw" ColumnName="IsDraw" />
+                <ScalarProperty Name="IsPractice" ColumnName="IsPractice" />
+                <ScalarProperty Name="WinnerId" ColumnName="WinnerId" />
+                <ScalarProperty Name="MatchStatus" ColumnName="MatchStatus" />
+                <ScalarProperty Name="EndedAt" ColumnName="EndedAt" />
+                <ScalarProperty Name="StartedAt" ColumnName="StartedAt" />
+                <ScalarProperty Name="Player2Id" ColumnName="Player2Id" />
+                <ScalarProperty Name="Player1Id" ColumnName="Player1Id" />
+                <ScalarProperty Name="MatchId" ColumnName="MatchId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Problems">
+            <EntityTypeMapping TypeName="DatabaseModel.Problems">
+              <MappingFragment StoreEntitySet="Problems">
+                <ScalarProperty Name="ProblemOrder" ColumnName="ProblemOrder" />
+                <ScalarProperty Name="MatchId" ColumnName="MatchId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="SampleOutputs" ColumnName="SampleOutputs" />
+                <ScalarProperty Name="SampleInputs" ColumnName="SampleInputs" />
+                <ScalarProperty Name="OutputFormat" ColumnName="OutputFormat" />
+                <ScalarProperty Name="InputFormat" ColumnName="InputFormat" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Language" ColumnName="Language" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Difficulty" ColumnName="Difficulty" />
+                <ScalarProperty Name="TagName" ColumnName="TagName" />
+                <ScalarProperty Name="ProblemId" ColumnName="ProblemId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Submissions">
+            <EntityTypeMapping TypeName="DatabaseModel.Submissions">
+              <MappingFragment StoreEntitySet="Submissions">
+                <ScalarProperty Name="AIAnalysis" ColumnName="AIAnalysis" />
+                <ScalarProperty Name="HintText" ColumnName="HintText" />
+                <ScalarProperty Name="ErrorMessage" ColumnName="ErrorMessage" />
+                <ScalarProperty Name="Output" ColumnName="Output" />
+                <ScalarProperty Name="ExecutionTimeMs" ColumnName="ExecutionTimeMs" />
+                <ScalarProperty Name="Result" ColumnName="Result" />
+                <ScalarProperty Name="SubmittedAt" ColumnName="SubmittedAt" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="Language" ColumnName="Language" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="ProblemId" ColumnName="ProblemId" />
+                <ScalarProperty Name="MatchId" ColumnName="MatchId" />
+                <ScalarProperty Name="SubmissionId" ColumnName="SubmissionId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Users">
+            <EntityTypeMapping TypeName="DatabaseModel.Users">
+              <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="pic" ColumnName="pic" />
+                <ScalarProperty Name="AI" ColumnName="AI" />
+                <ScalarProperty Name="LoginProvider" ColumnName="LoginProvider" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="Rating" ColumnName="Rating" />
+                <ScalarProperty Name="PreferredLanguage" ColumnName="PreferredLanguage" />
+                <ScalarProperty Name="UserRole" ColumnName="UserRole" />
+                <ScalarProperty Name="DisplayName" ColumnName="DisplayName" />
+                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="Username" ColumnName="Username" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="無" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

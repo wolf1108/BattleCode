@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="5c78f3c8e1344e26aeced4c8a4268f98" Name="Diagram1" ZoomLevel="74">
+        <EntityTypeShape EntityType="DatabaseModel.Matches" Width="1.5" PointX="3" PointY="1" />
+        <EntityTypeShape EntityType="DatabaseModel.Problems" Width="1.5" PointX="3" PointY="6.75" />
+        <EntityTypeShape EntityType="DatabaseModel.Submissions" Width="1.5" PointX="5.25" PointY="1.375" />
+        <EntityTypeShape EntityType="DatabaseModel.Users" Width="1.5" PointX="0.75" PointY="1.625" />
+        <AssociationConnector Association="DatabaseModel.FK__Matches__Player1__6EC0713C" />
+        <AssociationConnector Association="DatabaseModel.FK__Matches__Player2__6FB49575" />
+        <AssociationConnector Association="DatabaseModel.FK__Matches__WinnerI__70A8B9AE" />
+        <AssociationConnector Association="DatabaseModel.FK__Submissio__Match__74794A92" />
+        <AssociationConnector Association="DatabaseModel.FK__Submissio__Probl__756D6ECB" />
+        <AssociationConnector Association="DatabaseModel.FK__Submissio__UserI__76619304" />
+        <AssociationConnector Association="DatabaseModel.FK_Problems_Matches" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
