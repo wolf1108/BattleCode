@@ -1,0 +1,132 @@
+﻿@{
+    ViewBag.Title = "註冊";
+}
+
+<style>
+
+    .login-bg {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        background-color: #f4f6fa;
+    }
+
+    .login-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 40px 30px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        max-width: 400px;
+        width: 100%;
+        border-top: 8px solid #355c7d;
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .login-title {
+        text-align: center;
+        color: #1c1b1b;
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .form-group {
+        width: 100%;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        max-width:100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 15px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        box-sizing: border-box;
+        display: block;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #355c7d;
+            box-shadow: 0 0 6px rgba(74, 105, 189, 0.4);
+        }
+
+    .btn-login {
+        background-color: #355c7d;
+        color: white;
+        border: none;
+        padding: 12px;
+        width: 100%;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .btn-login:hover {
+            background-color: #f9ca24;
+            color: #1c1b1b;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    .signup-text {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="login-bg">
+    <div class="login-card">
+        <h2 class="login-title">註冊帳號</h2>
+
+        @using (Html.BeginForm("Register", "Home", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label for="Username">帳號</label>
+                <input type="text" name="Username" class="form-control" required />
+                @Html.ValidationMessage("Username", "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                <label for="Email">信箱</label>
+                <input type="email" name="Email" class="form-control" required />
+                @Html.ValidationMessage("Email", "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                <label for="Password">密碼</label>
+                <input type="password" name="Password" class="form-control" required />
+            </div>
+
+            <div class="form-group">
+                <label for="ConfirmPassword">確認密碼</label>
+                <input type="password" name="ConfirmPassword" class="form-control" required />
+                @Html.ValidationMessage("ConfirmPassword", "", new { @class = "text-danger" })
+            </div>
+
+            <div class="form-group">
+                <label for="DisplayName">暱稱</label>
+                <input type="text" name="DisplayName" class="form-control" required />
+            </div>
+
+            <p class="signup-text">
+                Already have an account?
+                @Html.ActionLink("Login here", "Login", "Home", new { @class = "text-link" })
+            </p>
+
+            <button type="submit" class="btn btn-login">註冊</button>
+        }
+    </div>
+</div>

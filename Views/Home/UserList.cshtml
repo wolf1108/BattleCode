@@ -1,0 +1,292 @@
+﻿@model IEnumerable<BattleCode.Models.Users>
+
+@{
+    ViewBag.Title = "使用者管理";
+}
+
+<style>
+    .card-container {
+        max-width: 1200px;
+        margin: 5px auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #4c6375;
+        border-left: 6px solid #3fbafe;
+        padding-left: 15px;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+        .user-table th,
+        .user-table td {
+            table-layout: fixed;
+            word-break: break-word;
+        }
+
+        .user-table th {
+            background: linear-gradient(to right, #fae370, #f5cd07);
+            color: black;
+            padding: 14px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-table td {
+            background-color: #ffffff;
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .user-table tr:nth-child(even) td {
+            background-color: #f9fcff;
+        }
+
+        .user-table tr:hover td {
+            background-color: #e0f7fa;
+            transition: background-color 0.3s;
+        }
+
+    .non-editable {
+        color: #888;
+    }
+
+    .d-none {
+        display: none !important;
+    }
+    .editable-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px 10px;
+        font-size: 15px;
+    }
+    .search-box {
+        width: 100%;
+        margin-bottom: 25px;
+        display: flex;
+    }
+
+    #userSearchInput {
+        display: block;
+        width: 1500px;
+        max-width: 100%;
+        padding: 12px 16px 12px 44px; /* 微調內縮 */
+        border: 2px solid #fae370;
+        border-radius: 12px;
+        font-size: 17px;
+        background-color: #fff;
+        background-image: url('https://cdn-icons-png.flaticon.com/512/622/622669.png');
+        background-size: 20px 20px;
+        background-repeat: no-repeat;
+        background-position: 14px center;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+
+    #userSearchInput:focus {
+        outline: none;
+        border-color: #f5cd07;
+        box-shadow: 0 0 8px #f5cd0788;
+    }
+
+
+</style>
+
+<div class="card-container">
+    <h2 class="user-title">使用者名單</h2>
+    <div class="search-box">
+        <input type="text" id="userSearchInput" placeholder="搜尋帳號、Email、名字…" />
+    </div>
+
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>帳號</th>
+                <th>Email</th>
+                <th>密碼</th>
+                <th>名字</th>
+                <th>角色</th>
+                <th>偏好語言</th>
+                <th>積分</th>
+                <th>段位</th>
+                <th>建立時間</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr data-userid="@user.UserId">
+                    <td data-field="Username"><span class="editable-text">@user.Username</span></td>
+                    <td data-field="Email"><span class="editable-text">@user.Email</span></td>
+                    <td data-field="PasswordHash" data-password="@user.PasswordHash"><span class="editable-text">******</span></td>
+                    <td data-field="DisplayName"><span class="editable-text">@user.DisplayName</span></td>
+                    <td data-field="UserRole"><span class="editable-text">@user.UserRole</span></td>
+                    <td data-field="PreferredLanguage"><span class="editable-text">@user.PreferredLanguage</span></td>
+                    <td data-field="Rating"><span class="editable-text">@user.Rating</span></td>
+                    <td class="rank-cell">
+                        @{
+                            int score = user.Rating ?? 0;
+                            string img = "1.png";
+                            if (score > 5000) { img = "8.png"; }
+                            else if (score > 2500) { img = "7.png"; }
+                            else if (score > 1500) { img = "6.png"; }
+                            else if (score > 1000) { img = "5.png"; }
+                            else if (score > 700) { img = "4.png"; }
+                            else if (score > 400) { img = "3.png"; }
+                            else if (score > 200) { img = "2.png"; }
+                        }
+                        <img class="rank-img" src="~/Content/img/rank/@img" style="height:32px;" />
+                    </td>
+                    <td class="non-editable">
+                        @(user.CreatedAt?.ToString("yyyy/MM/dd tt hh:mm:ss", System.Globalization.CultureInfo.GetCultureInfo("zh-TW")) ?? "未設定")
+                    </td>
+                    <td>
+                        <div class="btn-group-action">
+                            <button class="btn btn-warning btn-edit">修改</button>
+                            <button class="btn btn-success btn-save d-none">儲存</button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // 即時搜尋功能
+        $('#userSearchInput').on('input', function () {
+            const keyword = $(this).val().toLowerCase();
+            $('.user-table tbody tr').each(function () {
+                const rowText = $(this).text().toLowerCase();
+                $(this).toggle(rowText.includes(keyword));
+            });
+        });
+
+$(document).ready(function () {
+
+    // 點擊【修改】
+    $('.user-table').on('click', '.btn-edit', function () {
+        const row = $(this).closest('tr');
+        const editBtn = row.find('.btn-edit');
+        const saveBtn = row.find('.btn-save');
+
+        // 替換成輸入框
+        row.find('td[data-field]').each(function () {
+            const field = $(this).data('field');
+            const cell = $(this);
+            let value = cell.find('.editable-text').text().trim();
+
+            if (field === "PasswordHash") {
+                value = cell.data('password');
+            }
+
+            const inputType = (field === "Rating") ? 'number' : 'text';
+            cell.find('.editable-text').replaceWith(
+                `<input type="${inputType}" class="form-control editable-input" data-field="${field}" value="${value}" />`
+            );
+        });
+
+        // 切換按鈕
+        editBtn.addClass('d-none');
+        saveBtn.removeClass('d-none');
+    });
+
+    // 點擊【儲存】
+    $('.user-table').on('click', '.btn-save', function () {
+        const row = $(this).closest('tr');
+        const userId = row.data('userid');
+        const inputs = row.find('.editable-input');
+        const editBtn = row.find('.btn-edit');
+        const saveBtn = row.find('.btn-save');
+
+        const data = { userId: userId };
+        inputs.each(function () {
+            const field = $(this).data('field');
+            data[field] = $(this).val();
+        });
+
+        // SweetAlert 確認儲存
+        Swal.fire({
+            title: '確定要儲存這些變更嗎？',
+            text: "請確認修改的資料正確！",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '確定',
+            cancelButtonText: '取消'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("UpdateUser", "Home")',
+                    data: data,
+                    success: function () {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '儲存成功！',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                        // 替換回文字
+                        inputs.each(function () {
+                            const val = $(this).val();
+                            const field = $(this).data('field');
+                            const displayText = (field === "PasswordHash") ? "******" : val;
+                            const td = $(this).closest('td');
+
+                            if (field === "PasswordHash") {
+                                td.data('password', val); // 更新真值
+                            }
+
+                            $(this).replaceWith(`<span class="editable-text">${displayText}</span>`);
+                        });
+
+                        // 更新段位圖
+                        const score = parseInt(data['Rating']) || 0;
+                        const imgName = getRankImage(score);
+                        row.find('.rank-cell img.rank-img').attr('src', `/Content/img/rank/${imgName}`);
+
+                        // 回到「修改」按鈕
+                        saveBtn.addClass('d-none');
+                        editBtn.removeClass('d-none');
+                    }
+                });
+            }
+        });
+    });
+
+    function getRankImage(score) {
+        if (score > 5000) return "8.png";
+        else if (score > 2500) return "7.png";
+        else if (score > 1500) return "6.png";
+        else if (score > 1000) return "5.png";
+        else if (score > 700) return "4.png";
+        else if (score > 400) return "3.png";
+        else if (score > 200) return "2.png";
+        return "1.png";
+    }
+});
+    </script>
+}
+
+
+
+

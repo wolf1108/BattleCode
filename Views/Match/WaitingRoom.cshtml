@@ -1,0 +1,101 @@
+﻿@{
+    ViewBag.Title = "等待頁面....";
+}
+
+<style>
+    .circular-chart {
+        display: block;
+        margin: 10px auto;
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    .circle-bg {
+        fill: none;
+        stroke: #eee;
+        stroke-width: 3.8;
+    }
+
+    .circle {
+        fill: none;
+        stroke: #3fbafe;
+        stroke-width: 2.8;
+        stroke-linecap: round;
+        transform: rotate(-90deg);
+        transform-origin: center;
+        transition: stroke-dasharray 0.5s ease;
+    }
+</style>
+
+
+
+
+<div style="text-align:center;">
+    <div class="loader-circle">
+        <svg viewBox="0 0 36 36" class="circular-chart">
+            <path class="circle-bg"
+                  d="M18 2.0845
+                   a 15.9155 15.9155 0 0 1 0 31.831
+                   a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path class="circle"
+                  id="progressCircle"
+                  stroke-dasharray="100, 100"
+                  d="M18 2.0845
+                   a 15.9155 15.9155 0 0 1 0 31.831
+                   a 15.9155 15.9155 0 0 1 0 -31.831" />
+        </svg>
+    </div>
+    <h3>正在等待其他對手加入中…</h3>
+    <p>剩餘時間：<span id="timeLeft">60</span> 秒</p>
+    <button onclick="location.href='/Home/Index'" class="btn btn-secondary">返回首頁</button>
+    <button onclick="location.href='/Match/CancelWaiting?matchId=@ViewBag.MatchId'" class="btn btn-danger">退出等待</button>
+
+</div>
+
+
+
+@section scripts {
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+    <script>
+        const matchId = @Html.Raw(ViewBag.MatchId);
+        let timeLeft = 60;
+        let totalTime = 60;
+
+        var connection = $.hubConnection();
+        var battleHub = connection.createHubProxy('battleHub');
+
+        battleHub.on('matchFound', function (id) {
+            if (parseInt(id) === parseInt(matchId)) {
+                clearInterval(timer);
+                clearInterval(checker);
+                window.location.href = "/Match/Battle?matchId=" + id;
+            }
+        });
+
+        connection.start().done(function () {
+            battleHub.invoke("joinMatchGroup", matchId);
+
+            checker = setInterval(function () {
+                battleHub.invoke("checkMatchStatus", matchId);
+            }, 3000);
+        });
+
+        // 倒數計時與動畫更新
+        let timer = setInterval(function () {
+            timeLeft--;
+            document.getElementById("timeLeft").textContent = timeLeft;
+
+            // 更新圓形進度條
+            let progress = (timeLeft / totalTime) * 100;
+            document.getElementById("progressCircle").setAttribute("stroke-dasharray", `${progress} ${100 - progress}`);
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                clearInterval(checker);
+                window.location.href = "/Practice/Start";
+            }
+        }, 1000);
+
+    </script>
+}

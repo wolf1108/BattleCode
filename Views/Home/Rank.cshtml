@@ -1,0 +1,226 @@
+﻿@model IEnumerable<BattleCode.Models.Users>
+
+@{
+    ViewBag.Title = "排行榜";
+    var top3 = Model.Take(3).ToList();
+    var rest = Model.Skip(3).ToList();
+
+    string currentUser = Session["DisplayName"]?.ToString() ?? "";
+    var currentUserRank = 1;
+    string currentUserImg = "1.png";
+    int currentUserScore = 0;
+
+    foreach (var u in Model)
+    {
+        if (u.DisplayName == currentUser)
+        {
+            currentUserScore = u.Rating ?? 0;
+            if (currentUserScore > 5000) { currentUserImg = "8.png"; }
+            else if (currentUserScore > 2500) { currentUserImg = "7.png"; }
+            else if (currentUserScore > 1500) { currentUserImg = "6.png"; }
+            else if (currentUserScore > 1000) { currentUserImg = "5.png"; }
+            else if (currentUserScore > 700) { currentUserImg = "4.png"; }
+            else if (currentUserScore > 400) { currentUserImg = "3.png"; }
+            else if (currentUserScore > 200) { currentUserImg = "2.png"; }
+            break;
+        }
+        currentUserRank++;
+    }
+}
+
+<style>
+   
+    .leaderboard-container {
+        max-width: 1200px;
+        margin: 10px auto;
+        background-color: #fff;
+        border-radius: 18px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        padding: 30px 40px;
+    }
+
+    .top3 {
+        display: flex;
+        justify-content: center;
+        align-items: end;
+        gap: 40px;
+        margin-bottom: 30px;
+    }
+
+    .top-user {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .rank-crown {
+        position: absolute;
+        top: -35px;
+        width: 48px;
+        z-index: 2;
+    }
+
+    .rank-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 4px solid #ffffff;
+        object-fit: cover;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+        .leaderboard-table th {
+            background: linear-gradient(to right, #fae370, #f5cd07);
+            color: white;
+            padding: 14px;
+            text-align: center;
+            font-size: 23px;
+        }
+
+        .leaderboard-table td {
+            background: #fefefe;
+            color: #333;
+            text-align: center;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            transition: background 0.3s;
+            font-size: 20px;
+        }
+
+        .leaderboard-table tr:hover td {
+            background: #f1f5ff;
+        }
+
+    .rank-img-sm {
+        height: 28px;
+    }
+
+    .current-user-info {
+        background-color: #f9fbff;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 16px 40px;
+        border-top: 2px solid #e3e7ed;
+        display: flex;
+        justify-content: right;
+        align-items: center;
+        font-weight: bold;
+        font-size: 30px;
+        z-index: 999;
+        box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.05);
+        color: #394861;
+    }
+    .top3 .top-user:nth-child(1) { /* 第二名（左） */
+        transform: scale(0.9);
+        margin-top: 40px;
+    }
+
+    .top3 .top-user:nth-child(2) { /* 第一名（中） */
+        transform: scale(1.1);
+        margin-top: 0px;
+    }
+
+    .top3 .top-user:nth-child(3) { /* 第三名（右） */
+        transform: scale(0.8);
+        margin-top: 60px;
+    }
+    .top-user .rank-img + img {
+        display: block;
+        margin-top: 6px;
+    }
+
+</style>
+
+<div class="leaderboard-container">
+    <h2 style="text-align:center; font-weight: bold; color: #394861; margin-bottom:30px">🏆 排行榜 TOP 玩家</h2>
+
+    @{
+        var displayOrder = new int[] { 1, 0, 2 }; // 對應「第二名 → 第一名 → 第三名」
+    }
+<div class="top3" style="display:flex; justify-content:center; gap:40px;">
+    @foreach (var idx in displayOrder)
+    {
+        var user = top3[idx];
+        int score = user.Rating ?? 0;
+        string badge = "1.png";
+        if (score > 5000) { badge = "8.png"; }
+        else if (score > 2500) { badge = "7.png"; }
+        else if (score > 1500) { badge = "6.png"; }
+        else if (score > 1000) { badge = "5.png"; }
+        else if (score > 700) { badge = "4.png"; }
+        else if (score > 400) { badge = "3.png"; }
+        else if (score > 200) { badge = "2.png"; }
+
+        string crown = idx == 0 ? "gold" : idx == 1 ? "silver" : "bronze";
+        string crownImg = $"/Content/img/{crown}.png";
+        string picFileName = string.IsNullOrEmpty(user.pic) ? "root.png" : user.pic;
+        string avatar = Url.Content("~/Content/img/head_up/" + picFileName);
+
+        <div class="top-user" style="text-align:center;">
+            <img src="@crownImg" class="rank-crown" />
+            <img src="@avatar" class="rank-img" />
+            <img src="~/Content/img/rank/@badge" style="width: 48px; margin-top: 8px;" />
+            <div style="margin-top: 12px; font-size: 18px;">@user.DisplayName</div>
+            <div style="font-size: 14px; color: #555;">@score 分</div>
+        </div>
+    }
+
+</div>
+
+
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th>名次</th>
+                <th>使用者名稱</th>
+                <th>積分</th>
+                <th>段位</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int rank = 4; // 從第4名開始
+                foreach (var user in rest) // 只走過第4名以後
+                {
+                    int score = user.Rating ?? 0;
+                    string img = "1.png";
+                    if (score > 5000) { img = "8.png"; }
+                    else if (score > 2500) { img = "7.png"; }
+                    else if (score > 1500) { img = "6.png"; }
+                    else if (score > 1000) { img = "5.png"; }
+                    else if (score > 700) { img = "4.png"; }
+                    else if (score > 400) { img = "3.png"; }
+                    else if (score > 200) { img = "2.png"; }
+                    <tr>
+                        <td>@rank</td>
+                        <td>@user.DisplayName</td>
+                        <td>@score</td>
+                        <td><img class="rank-img-sm" src="~/Content/img/rank/@img" /></td>
+                    </tr>
+                    rank++;
+                }
+            }
+        </tbody>
+    </table>
+
+    <div class="current-user-info">
+        <div>《 目前排名：第 @currentUserRank 名 》 </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span>---  @currentUserScore 分</span>
+            <img src="~/Content/img/rank/@currentUserImg" style="height: 32px;" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,70 @@
+﻿@{
+    ViewBag.Title = "產生題目";
+}
+
+<h2>產生程式題目</h2>
+
+<div>
+    <label>選擇難度：</label>
+    <select id="difficulty">
+        <option value="Easy">簡單</option>
+        <option value="Medium">中等</option>
+        <option value="Hard">困難</option>
+    </select>
+
+    <label>選擇語言：</label>
+    <select id="language">
+        <option value="Python">Python</option>
+        <option value="C++">C++</option>
+        <option value="C#">C#</option>
+    </select>
+
+    <button id="generateBtn">產生題目</button>
+</div>
+
+<hr />
+
+<div id="problemDisplay" style="white-space: pre-wrap;"></div>
+
+@section scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $('#generateBtn').click(function () {
+            var difficulty = $('#difficulty').val();
+            var language = $('#language').val();
+
+            $('#problemDisplay').text("載入中...");
+
+            $.ajax({
+                url: '/Problem/Generate',
+                type: 'GET',
+                data: { difficulty: difficulty, language: language },
+                success: function (data) {
+                    var display = `
+【標題】${data.Title}
+【說明】
+${data.Description}
+
+【輸入格式】
+${data.InputFormat}
+
+【輸出格式】
+${data.OutputFormat}
+
+【範例輸入】
+${data.SampleInputs}
+
+【範例輸出】
+${data.SampleOutputs}
+
+【難度】${data.Difficulty}
+                    `;
+                    $('#problemDisplay').text(display);
+                },
+                error: function () {
+                    $('#problemDisplay').text("出題失敗，請稍後再試。");
+                }
+            });
+        });
+    </script>
+}

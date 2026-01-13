@@ -1,0 +1,140 @@
+﻿@{
+    var displayName = Session["DisplayName"] != null ? Session["DisplayName"].ToString() : "使用者";
+    var isAuthenticated = Session["UserId"] != null;
+    var userRole = Session["UserRole"] != null ? Session["UserRole"].ToString() : "User";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - BattleCode</title>
+    @Styles.Render("~/Content/css")
+    <link href="~/Content/fonts.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="@Url.Content("~/Scripts/infographic.project.json")"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            margin-top: 60px;
+        }
+
+        .navbar-inverse {
+            background-color: #1e3d59;
+            border-color: #1e3d59;
+        }
+
+        .navbar-brand {
+            font-size: 26px; /* 字體變大 */
+            font-weight: 700; /* 加粗 */
+            color: #ffffff !important;
+            letter-spacing: 1px;
+        }
+
+
+        .navbar-inverse .navbar-nav > li > a,
+        .navbar-inverse .navbar-text {
+            color: #ffffff !important;
+        }
+
+            .navbar-inverse .navbar-nav > li > a:hover {
+                background-color: #f9ca24 !important;
+                color: #000000 !important;
+            }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #1e3d59;
+            color: #fff;
+            margin-top: 40px;
+            border-top: 3px solid #ccc;
+        }
+
+        hr {
+            border-top: 1px solid #ccc;
+        }
+    </style>
+
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" title="其他選項">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @if (userRole == "Admin")
+                {
+                    @Html.ActionLink("BattleCode", "Dashboard", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                }
+                else if (userRole == "User")
+                {
+                    @Html.ActionLink("BattleCode", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                }
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+
+                    @if (userRole == "Admin")
+                    {
+                        <!-- 💡 管理者專屬 -->
+                        <li>@Html.ActionLink("使用者管理", "UserList", "Home")</li>
+                        <li>@Html.ActionLink("對戰總紀錄", "all_His", "Home")</li>
+                        <li>@Html.ActionLink("聊天室", "Chat", "Home")</li>
+
+                    }
+                    else if (userRole == "User")
+                    {
+                        <!-- 💡 一般使用者功能 -->
+                        <li>@Html.ActionLink("關於平台", "About", "Home")</li>
+                        @*<li>@Html.ActionLink("連絡人", "Contact", "Home")</li>*@
+                        <li>@Html.ActionLink("聊天室", "Chat", "Home")</li>
+                        <li>@Html.ActionLink("挑戰賽", "Start", "Match")</li>
+                        <li>@Html.ActionLink("訓練場", "Start", "Practice")</li>
+                        <li>@Html.ActionLink("AI分析", "AIAnalysis", "Home")</li>
+
+
+                    }
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+
+                    @if (userRole == "User")
+                    {
+                        <li>@Html.ActionLink("排行榜", "Rank", "Home")</li>
+                        <li>@Html.ActionLink("對戰紀錄", "History", "Home")</li>
+
+                    }
+                    @if (isAuthenticated)
+                    {
+                        <li>@Html.ActionLink(displayName + "❤️", "Person", "Home")</li>
+                        <li>@Html.ActionLink("登出", "Logout", "Home")</li>
+                    }
+                    else
+                    {
+                        <li>@Html.ActionLink("登入", "Login", "Home")</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - BattleCode</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

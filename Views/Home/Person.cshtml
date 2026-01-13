@@ -1,0 +1,313 @@
+﻿
+@model BattleCode.Models.User
+@{
+    ViewBag.Title = "個人資料";
+    var picFileName = string.IsNullOrEmpty(Model.pic) ? "root.png" : Model.pic;
+    var originalPicUrl = Url.Content("~/Content/img/head_up/" + picFileName) + "?v=" + DateTime.Now.Ticks;
+    var chartData = ViewBag.StatsJson ?? "[]";
+
+}
+
+<style>
+    body {
+        background-color: #f5f7fb;
+    }
+
+    h2 {
+        text-align: center;
+        margin-top: 40px;
+        font-size: 34px;
+        color: #2c3e50;
+        letter-spacing: 1px;
+    }
+
+    .profile-container {
+        position: relative;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        max-width: 900px;
+        margin: 10px auto;
+        padding: 40px;
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .form-action-top-right {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-left: 8px;
+        font-weight: 600;
+    }
+
+    .btn-warning {
+        background-color: #f39c12;
+        color: white;
+    }
+
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+    .btn-danger {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+    .btn.hidden {
+        display: none;
+    }
+
+    .profile-image {
+        flex: 0 0 220px;
+        text-align: center;
+    }
+
+        .profile-image img {
+            margin-top: 50px;
+            margin-left: 100px;
+            width: 240px;
+            height: 240px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #ecf0f1;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+    .profile-fields {
+        flex: 1;
+        min-width: 300px;
+        margin-left: 100px;
+        margin-top: 50px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 15px;
+        border: 1px solid #bdc3c7;
+        border-radius: 6px;
+        transition: 0.3s;
+    }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 4px rgba(52, 152, 219, 0.4);
+            outline: none;
+        }
+
+        .form-control[readonly] {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+    .upload-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-top: 30px;
+        margin-left: 100px;
+    }
+
+    .custom-upload-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 18px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease;
+    }
+
+        .custom-upload-btn:hover {
+            background-color: #45a049;
+        }
+
+    .upload-input {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    /* (CSS 保持不變，略) */
+</style>
+
+<h2 style="margin-top: 5px;">個人資料</h2>
+
+@if (Model == null)
+{
+    <div style="text-align:center; color: red; margin-top: 20px;">
+        查無個人資料，請重新登入或聯絡管理員。
+    </div>
+}
+else
+{
+    using (Html.BeginForm("Person", "Home", FormMethod.Post, new { enctype = "multipart/form-data", id = "profileForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="profile-container">
+            <div class="form-action-top-right">
+                <button type="button" id="editBtn" class="btn btn-warning">修改</button>
+                <button type="submit" id="saveBtn" class="btn btn-primary hidden">儲存</button>
+                <button type="button" id="cancelBtn" class="btn btn-danger hidden">取消</button>
+            </div>
+
+            <div class="profile-image">
+                <img id="userPic" src="@originalPicUrl" alt="個人頭像" />
+                <div class="form-group upload-wrapper hidden" id="uploadWrapper">
+                    <button type="button" class="custom-upload-btn">選擇檔案</button>
+                    <input type="file" name="picFile" id="picFile" class="upload-input" accept="image/*" disabled onchange="previewImage(event)" />
+                </div>
+            </div>
+
+            <div class="profile-fields">
+                <div class="form-group">
+                    <label>使用者名稱</label>
+                    <input class="form-control" value="@Model.Username" readonly />
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input class="form-control" value="@Model.Email" readonly />
+                </div>
+                <div class="form-group">
+                    <label>顯示名稱</label>
+                    @Html.TextBoxFor(m => m.DisplayName, new { @class = "form-control", @readonly = "readonly", id = "displayNameInput" })
+                </div>
+                <div class="form-group">
+                    <label>密碼</label>
+                    @Html.TextBox("PasswordHashMasked", "********", new { @class = "form-control", @readonly = "readonly", id = "passwordInput" })
+                    @Html.HiddenFor(m => m.PasswordHash)
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<script>
+    const editBtn = document.getElementById("editBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const uploadWrapper = document.getElementById("uploadWrapper");
+    const fileInput = document.getElementById("picFile");
+    const userPic = document.getElementById("userPic");
+    const originalPicUrl = userPic.src;  // 初始圖片網址
+    const fields = ["displayNameInput", "passwordInput"];
+
+    const setEditMode = (enable) => {
+        fields.forEach(id => document.getElementById(id).toggleAttribute("readonly", !enable));
+        fileInput.toggleAttribute("disabled", !enable);
+        editBtn.classList.toggle("hidden", enable);
+        saveBtn.classList.toggle("hidden", !enable);
+        cancelBtn.classList.toggle("hidden", !enable);
+        uploadWrapper.classList.toggle("hidden", !enable);
+
+         if (enable) {
+        document.getElementById("passwordInput").value = "@Model.PasswordHash";
+    } else {
+        document.getElementById("passwordInput").value = "********";
+    }
+    };
+
+    editBtn.addEventListener("click", () => {
+        setEditMode(true);
+    });
+
+    cancelBtn.addEventListener("click", () => {
+        setEditMode(false);
+        document.getElementById("profileForm").reset();
+        userPic.src = originalPicUrl;
+        Swal.fire({
+            icon: 'info',
+            title: '已取消編輯',
+            confirmButtonText: '確定'
+        });
+    });
+
+    document.getElementById("profileForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        document.getElementsByName("PasswordHash")[0].value = document.getElementById("passwordInput").value;
+        Swal.fire({
+            title: '確定要儲存修改嗎？',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '確定',
+            cancelButtonText: '取消'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.submit();
+            }
+        });
+    });
+
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            userPic.src = reader.result;
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    @if (ViewBag.Message != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'success',
+                title: '修改成功',
+                text: '@ViewBag.Message',
+                confirmButtonText: '確定'
+            }).then(() => {
+                setEditMode(false);
+                document.getElementById("picFile").value = "";
+            });
+        </text>
+    }
+</script>

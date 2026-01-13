@@ -1,0 +1,146 @@
+﻿@model BattleCode.Models.ViewModels.MatchDetailViewModel
+
+@{
+    ViewBag.Title = "對戰詳細";
+}
+
+<style>
+    pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-x: auto;
+        max-width: 100%;
+        background-color: #ffffff;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    td pre {
+        margin: 0;
+    }
+
+    table.table-bordered {
+        width: 100%;
+        margin-top: 15px;
+        border-collapse: collapse;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    table th {
+        white-space: nowrap;
+    }
+
+    table.table-bordered thead {
+        background-color: #2c3e50;
+        color: white;
+    }
+
+    table.table-bordered th, table.table-bordered td {
+        padding: 12px;
+        text-align: left;
+        font-size: 14px;
+        vertical-align: top;
+    }
+
+    table.table-bordered tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+
+
+    .problem-block {
+        margin: 40px 0;
+        padding: 25px;
+        border: 2px solid #dcdcdc;
+        border-radius: 12px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+        .problem-block h3 {
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+    .btn-back {
+        display: inline-block;
+        padding: 10px 22px;
+        font-size: 16px;
+        background-color: #367ba8;
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: bold;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    }
+
+        .btn-back:hover {
+            background-color: #f2d949;
+            color: #222;
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+</style>
+
+
+<div style="font-size:30px;">
+    <h2>對戰 ID：@Model.Match.MatchId</h2>
+    <p>開始時間：@(Model.Match.StartedAt?.ToString("yyyy-MM-dd HH:mm"))</p>
+    <p>語言：@Model.Match.Language | 難度：@Model.Match.Mode </p>
+</div>
+    
+    <div style="text-align: right; margin-bottom: 20px;">
+        <a href="javascript:history.back()" class="btn-back">⬅️ 返回</a>
+    </div>
+
+    @foreach (var p in Model.Problems)
+    {
+        <div style="margin: 10px 0; border: 1px solid #ccc; padding: 20px; border-radius: 10px;font-size:22px;">
+            <h2>📘 題目 @p.Problem.ProblemOrder： @p.Problem.Title</h2>
+            <p><strong>題型：</strong>@p.Problem.TagName</p>
+            <p><strong>難度：</strong>@p.Problem.Difficulty</p>
+            <p><strong>描述：</strong>@p.Problem.Description</p>
+            <p><strong>輸入格式：</strong>@p.Problem.InputFormat</p>
+            <p><strong>輸出格式：</strong>@p.Problem.OutputFormat</p>
+
+            <br><br />
+
+            <h3>📝 提交紀錄</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>玩家</th>
+                        <th>程式碼</th>
+                        <th>結果</th>
+                        <th>輸出</th>
+                        <th>AI提示</th>
+                        <th>錯誤訊息</th>
+                        <th>AI分析</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sub in p.Submissions)
+                    {
+                        <tr>
+                            <td>@sub.PlayerName</td>
+                            <td><pre>@sub.Code</pre></td>
+                            <td style="font-size: 22px; color:@(sub.Result == "Correct" ? "green" : "red");">
+                                @(sub.Result == "Correct" ? "✔" : "✘")
+                            </td>
+                            <td><pre>@sub.Output</pre></td>
+                            <td class="ai-cell"><pre>@sub.HintText</pre></td>
+                            <td><pre>@sub.ErrorMessage</pre></td>
+                            <td class="ai-cell"><pre>@sub.AIAnalysis</pre></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }

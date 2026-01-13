@@ -1,0 +1,294 @@
+﻿@model BattleCode.Models.PracticeBattleViewModel
+
+@{
+    ViewBag.Title = "刷題練習";
+    var firstProblem = Model.Problems.FirstOrDefault();
+    var totalProblems = Model.Problems.Count;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
+    <style>
+        .practice-score {
+            text-align: center;
+            font-size: 22px;
+            /*            color: #ffb700;*/
+            margin-bottom: 20px;
+        }
+
+        #countdown {
+            font-size: 48px;
+            color: #e74c3c;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #pratice-area {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        #problem-container {
+            font-size: 20px; /* 整體字體變大 */
+            line-height: 1.6;
+        }
+
+            #problem-container p {
+                margin: 5px 0;
+            }
+
+            #problem-container h4 {
+                font-size: 24px;
+                margin-bottom: 10px;
+                color: #2c3e50;
+                font-weight: bold;
+            }
+
+            #problem-container span {
+                font-size: 20px;
+            }
+
+        #submit-code, #ai-hint-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+            #submit-code[disabled], ai-hint-btn[disabled] {
+                background-color: #bdc3c7;
+            }
+
+            #submit-code:hover, #ai-hint-btn:hover {
+                background-color: #217dbb;
+            }
+
+
+        #ai-hint-result {
+            margin-top: 10px;
+            color: #2980b9;
+            font-style: italic;
+        }
+
+        #code-editor {
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>刷題練習</h2>
+    <div id="countdown"></div>
+    <div id="progress-info" style="text-align:center; margin-bottom: 20px;">
+        <strong>第 <span id="current-problem-number">1</span> 題 / 共 @totalProblems 題</strong>
+    </div>
+    <div class="practice-score">
+        得分：<span id="player-score">@Model.Score</span>
+    </div>
+    <div id="pratice-area">
+        <h3>題目區</h3>
+        <div id="problem-container">
+            @if (firstProblem != null)
+            {
+                <h4 id="problem-title">@firstProblem.Title</h4>
+                <p id="problem-description">@firstProblem.Description</p>
+                <p><strong>輸入格式：</strong> <span id="input-format">@firstProblem.InputFormat</span></p>
+                <p><strong>輸出格式：</strong> <span id="output-format">@firstProblem.OutputFormat</span></p>
+                <p><strong>範例輸入：</strong> <span id="sample-input">@firstProblem.SampleInputs</span></p>
+                <p><strong>範例輸出：</strong> <span id="sample-output">@firstProblem.SampleOutputs</span></p>
+            }
+            else
+            {
+                <p>⚠ 無題目可顯示。</p>
+            }
+        </div>
+
+        <div id="ai-hint-area" style="margin-top:20px;">
+            <button id="ai-hint-btn" type="button">AI提示</button>
+            <div id="ai-hint-result"></div>
+        </div>
+
+        <h3>程式碼編輯區</h3>
+        <textarea id="code-editor" placeholder="請在此撰寫程式碼" disabled></textarea>
+        <br />
+        <button id="submit-code" disabled>提交答案</button>
+        <div id="loading" style="display:none; color:blue; margin-top:10px;">正在提交中...</div>
+        <div id="submission-result" style="margin-top:10px; font-weight:bold;"></div>
+    </div>
+    <div id="practice-result" style="display:none; text-align:center; margin-top:40px; font-size:24px; color:green;">
+        🎉 練習結束！請稍候查看結果。
+    </div>
+    <input type="hidden" id="problemId" value="@(firstProblem?.ProblemId ?? 0)" />
+    <input type="hidden" id="language" value="@(firstProblem?.Language ?? "python")" />
+    <input type="hidden" id="playerId" value="@Model.PlayerId" />
+    <input type="hidden" id="matchId" value="@Model.Match.MatchId" />
+
+    @section scripts {
+        <script>
+    $(function () {
+        // 1. 參數與 CodeMirror 初始化
+        const matchId = $('#matchId').val();
+        const totalProblems = @totalProblems;
+        let score = @Model.Score;
+        let currentProblemIndex = 1;
+        let allProblemIds = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Problems.Select(p => p.ProblemId).ToList()));
+        let problemId = allProblemIds[0];
+        let timerInterval, hasSubmitted = false;
+
+        // CodeMirror 設定
+        let language = $('#language').val();
+        let mode = "python";
+        if (language === "cpp") mode = "text/x-c++src";
+        else if (language === "java") mode = "text/x-java";
+        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+            lineNumbers: true, mode: mode, theme: "default", indentUnit: 4, tabSize: 4, autofocus: true
+        });
+        function setEditorEnabled(enabled) { editor.setOption("readOnly", !enabled); }
+
+        // 2. AI提示
+        $('#ai-hint-btn').click(function () {
+            $('#ai-hint-btn').prop('disabled', true).text('載入中...');
+            $('#ai-hint-result').text('');
+            $.get('/Match/GetAiHint', {
+                problemId: $('#problemId').val(),
+                matchId: matchId,
+                userId: $('#playerId').val()
+            }, function (res) {
+                if (res.success) $('#ai-hint-result').text(res.hint);
+                else $('#ai-hint-result').text(res.hint || '取得AI提示失敗');
+                $('#ai-hint-btn').prop('disabled', false).text('AI提示');
+            }).fail(function () {
+                $('#ai-hint-result').text('取得AI提示失敗');
+                $('#ai-hint-btn').prop('disabled', false).text('AI提示');
+            });
+        });
+
+        // 3. 倒數計時與切題
+        function startProblemTimer(seconds) {
+            clearInterval(timerInterval);
+            let remaining = seconds, countdownDiv = $("#countdown").show();
+            hasSubmitted = false;
+            countdownDiv.text("剩餘：" + remaining + " 秒");
+            timerInterval = setInterval(() => {
+                remaining--;
+                if (remaining >= 0) {
+                    countdownDiv.text("剩餘：" + remaining + " 秒");
+                } else {
+                    clearInterval(timerInterval);
+                    countdownDiv.text("時間到！");
+                    disableCodeArea();
+                    submitCode(''); // 時間到自動送空白
+                }
+            }, 1000);
+        }
+
+        function enableCodeArea() { setEditorEnabled(true); $('#submit-code').prop('disabled', false); }
+        function disableCodeArea() { setEditorEnabled(false); $('#submit-code').prop('disabled', true); }
+
+        // 4. 提交答案
+        $('#submit-code').click(function () {
+            const code = editor.getValue().trim();
+            if (!code) { alert("請輸入程式碼！"); return; }
+            submitCode(code);
+        });
+
+        function submitCode(code) {
+            $('#loading').show();
+            const aiHint = $('#ai-hint-result').text().trim() || "";
+            $('#submission-result').text("");
+            $.ajax({
+                url: '/Practice/SubmitCode',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    matchId: matchId,
+                    problemId: parseInt(problemId),
+                    code: code,
+                    language: language,
+                    aiHint: aiHint
+                }),
+                success: function (res) {
+                    $('#loading').hide(); hasSubmitted = true;
+                    if (res.success && res.isCorrect) {
+                        score += (res.addScore || 0);
+                        $('#player-score').text(score);
+                        $('#submission-result').html("✅ 答對了！<br/>" + (res.result || ''));
+                        disableCodeArea();
+                        clearInterval(timerInterval);
+                        setTimeout(nextProblem, 1000);
+                    } else if (code === '') {
+                        // 時間到未作答也自動切題
+                        $('#submission-result').html("⏰ 時間到，未作答");
+                        setTimeout(nextProblem, 1000);
+                    } else if (res.success && !res.isCorrect) {
+                        $('#submission-result').html("❌ 錯誤答案<br/>" + (res.message || ''));
+                    } else {
+                        $('#submission-result').html("⚠ 發生錯誤<br/>" + (res.message || ''));
+                    }
+                },
+                error: function () {
+                    $('#loading').hide();
+                    alert("提交失敗，請稍後再試！");
+                }
+            });
+        }
+
+        // 5. 換題
+        function nextProblem() {
+            if (currentProblemIndex >= allProblemIds.length) {
+                clearInterval(timerInterval);
+                $('#pratice-area').hide();
+                $('#practice-result').show().text("🎉 練習結束！請稍候查看結果。");
+                setTimeout(() => {
+                    window.location.href = '/Practice/Result?matchId=' + matchId;
+                }, 1000);
+                return;
+            }
+            currentProblemIndex++;
+            problemId = allProblemIds[currentProblemIndex - 1];
+            $('#problemId').val(problemId);
+            $('#ai-hint-result').empty();
+            $('#submission-result').empty();
+            editor.setValue("");
+            $.get('/Practice/GetProblemDetail', { problemId }, function (res) {
+                if (res.success) {
+                    $('#current-problem-number').text(currentProblemIndex);
+                    $('#problem-title').text(res.title);
+                    $('#problem-description').text(res.description);
+                    $('#input-format').text(res.inputFormat);
+                    $('#output-format').text(res.outputFormat);
+                    $('#sample-input').text(res.sampleInput);
+                    $('#sample-output').text(res.sampleOutput);
+                    $('#loading').hide();
+                    enableCodeArea();
+                    startProblemTimer(60);
+                } else {
+                    $('#battle-area').hide();
+                    $('#practice-result').show();
+                    setTimeout(() => { window.location.href = '/Practice/Result?matchId=' + matchId; }, 1000);
+                }
+            });
+        }
+
+        // 6. 初始化
+        enableCodeArea();
+        startProblemTimer(60);
+    });
+        </script>
+    }
+</body>
+</html>

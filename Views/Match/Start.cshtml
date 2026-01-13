@@ -1,0 +1,93 @@
+﻿@{
+    ViewBag.Title = "開始對戰";
+}
+
+<!-- SweetAlert CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+
+
+    .match-container {
+        max-width: 500px;
+        margin: 10px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+        .match-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #34495e;
+        font-size: 20px;
+    }
+
+    select {
+        width: 100%;
+        max-width:100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        font-size: 18px;
+    }
+
+    button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(to right, #fae370, #f5cd07);
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    form > div {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="match-container">
+    <h2>開始對戰</h2>
+
+    <form id="matchForm" method="post" action="/Match/Start">
+        <div>
+            <label>選擇程式語言：</label>
+            <select name="language" required>
+                <option value="Python">Python</option>
+                <option value="Java">Java</option>
+                <option value="C++">C++</option>
+            </select>
+        </div>
+        <div>
+            <label>選擇難度：</label>
+            <select name="difficulty" required>
+                <option value="Easy">簡單</option>
+                <option value="Medium">中等</option>
+                <option value="Hard">困難</option>
+            </select>
+        </div>
+        <button type="submit">開始配對</button>
+    </form>
+</div>
+

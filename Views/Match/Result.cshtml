@@ -1,0 +1,272 @@
+﻿@model BattleCode.Models.ResultViewModel
+@{
+    ViewBag.Title = "對戰結果";
+}
+<style>
+
+
+    h2 {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 8px;
+        margin-bottom: 24px;
+        font-size: 26px;
+    }
+
+    .title-icon {
+        margin-right: 10px;
+    }
+
+    .summary p {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+
+    .summary strong {
+        color: #2980b9;
+        font-weight: 600;
+    }
+
+    .winner-banner {
+        background: linear-gradient(90deg, #ffeaa7, #fdcb6e);
+        color: #2d3436;
+        font-size: 22px;
+        font-weight: bold;
+        padding: 16px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    .draw-banner {
+        background: linear-gradient(90deg, #dfe6e9, #b2bec3);
+        color: #2d3436;
+        font-size: 22px;
+        font-weight: bold;
+        padding: 16px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+
+
+    hr {
+        border: none;
+        border-bottom: 1px solid #ddd;
+        margin: 30px 0;
+    }
+
+    .problem-result {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        padding: 24px;
+        margin-bottom: 30px;
+    }
+
+        .problem-result h4 {
+            font-size: 20px;
+            margin-top: 0;
+            color: #34495e;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .problem-result p {
+            font-size: 16px;
+            margin: 8px 0;
+        }
+
+
+        .problem-result pre {
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 15px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #ddd;
+        }
+
+    .correct {
+        color: #27ae60;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .incorrect {
+        color: #e74c3c;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .ai-analysis {
+        background: #f0f8ff;
+        border-left: 5px solid #3498db;
+        padding: 12px 16px;
+        margin-top: 14px;
+        border-radius: 4px;
+    }
+
+    .error-message {
+        background: #fee;
+        border-left: 5px solid #c0392b;
+        color: #c0392b;
+        padding: 12px 16px;
+        margin-top: 14px;
+        white-space: pre-wrap;
+        border-radius: 4px;
+    }
+
+    .match-header-bar {
+        display: flex;
+        justify-content: space-between; /* 分數左，其他右 */
+        align-items: center;
+        gap: 32px;
+        margin-top: 24px;
+        margin-bottom: 24px;
+    }
+
+    /* 分數靠左，右邊再 nest 一個 flex */
+    .match-score {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .match-countdown {
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+        gap: 6px;
+    }
+
+    .countdown {
+        color: #e74c3c;
+        font-weight: bold;
+        font-size: 22px;
+        margin-right: 0.2em;
+    }
+
+    #back-to-match-btn {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 12px 24px;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        margin-left: 18px;
+        transition: background 0.2s;
+    }
+
+        #back-to-match-btn:hover {
+            background-color: #217dbb;
+        }
+</style>
+
+
+
+<h2><span class="title-icon">⚔</span> 對戰結果</h2>
+
+@if (Model.WinnerName == "平手")
+{
+    <div class="draw-banner">
+        本場對戰平手！雙方實力不相上下！
+    </div>
+}
+else
+{
+    <div class="winner-banner">
+        🏆恭喜 <strong>@Model.WinnerName</strong> 獲勝！
+    </div>
+}
+@*<div class="summary">
+        <p><strong>@Model.Player1Name 積分+</strong> @Model.Player1Score 分</p>
+        <p><strong>@Model.Player2Name 積分+ </strong> @Model.Player2Score 分</p>
+    </div>
+    <hr />*@
+<div class="match-header-bar">
+    <div class="summary">
+        <p><strong>@Model.Player1Name 積分+</strong> @Model.Player1Score 分</p>
+        <p><strong>@Model.Player2Name 積分+ </strong> @Model.Player2Score 分</p>
+    </div>
+    <span class="match-countdown">
+        <span id="auto-back-countdown" class="countdown">60</span>
+        秒後自動返回開始對戰
+    </span>
+    <button id="back-to-match-btn" type="button"
+            onclick="location.href='/Match/Start'">
+        返回開始對戰
+    </button>
+</div>
+
+@section scripts {
+    <script>
+        // 倒數秒數
+        let countdown = 60;
+        const countdownSpan = document.getElementById('auto-back-countdown');
+        const timer = setInterval(() => {
+            countdown--;
+            countdownSpan.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = '/Match/Start';
+            }
+        }, 1000);
+    </script>
+}
+
+@foreach (var result in Model.ProblemResults)
+{
+    <div class="problem-result">
+        <h4>@result.Title</h4>
+
+        <p><strong>題目說明：</strong></p>
+        <pre>@result.Description</pre>
+
+        <p>
+            <strong>作答結果：</strong>
+            <span class="@(result.IsCorrect ? "correct" : "incorrect")">
+                @(result.IsCorrect ? "✅ 答對了！" : "❌ 答錯了")
+            </span>
+        </p>
+
+        @if (!string.IsNullOrEmpty(result.ExplanationOrFeedback))
+        {
+            <p><strong>回饋說明：</strong> @result.ExplanationOrFeedback</p>
+        }
+        else
+        {
+            <p><strong>回饋說明：</strong> 無</p>
+        }
+
+        @if (!string.IsNullOrEmpty(result.AIAnalysis))
+        {
+            <div class="ai-analysis">
+                <p><strong>AI 分析建議：</strong></p>
+                <pre>@result.AIAnalysis</pre>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(result.ErrorMessage))
+        {
+            <div class="error-message">
+                <p><strong>錯誤訊息：</strong></p>
+                <pre>@result.ErrorMessage</pre>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(result.Code))
+        {
+            <p><strong>你的程式碼：</strong></p>
+            <pre>@result.Code</pre>
+        }
+    </div>
+}

@@ -1,0 +1,182 @@
+﻿@{
+    ViewBag.Title = "AI 錯題分析";
+    var chartData = ViewBag.StatsJson ?? "[]";
+}
+
+<style>
+    .btn-ai {
+        background-color: #2d98da;
+        color: white;
+        padding: 12px 24px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+
+        .btn-ai:hover {
+            background-color: #1b7cc3;
+            transform: translateY(-2px);
+            cursor: pointer;
+        }
+
+    .ai-box {
+        white-space: pre-wrap;
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        font-size: 16px;
+        line-height: 1.6;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        max-width: 100%;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .alert-bad {
+        background-color: #ffe6e6;
+        border-left: 6px solid #e74c3c;
+        padding: 15px;
+        border-radius: 8px;
+        color: #c0392b;
+        font-size: 16px;
+    }
+
+    .alert-warn {
+        background-color: #fff9e6;
+        border-left: 6px solid #f39c12;
+        padding: 15px;
+        border-radius: 8px;
+        color: #b9770e;
+        font-size: 16px;
+    }
+
+    .alert-good {
+        background-color: #e6f9ec;
+        border-left: 6px solid #2ecc71;
+        padding: 15px;
+        border-radius: 8px;
+        color: #27ae60;
+        font-size: 16px;
+    }
+
+    .alert-default {
+        background-color: #f4f4f4;
+        border-left: 6px solid #aaa;
+        padding: 15px;
+        border-radius: 8px;
+        color: #444;
+        font-size: 16px;
+    }
+</style>
+
+<h2 style="font-weight: bold; font-size: 26px; margin-bottom: 20px;">📊 錯題類型統計</h2>
+
+<div style="padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 100%;">
+    <div class="chart-header">
+        <span style="font-weight: bold;">圖表類型：</span>
+        <select id="chartTypeSelector" style="padding: 6px 12px; border-radius: 6px; font-size: 16px;">
+            <option value="bar">長條圖</option>
+            <option value="line">折線圖</option>
+        </select>
+    </div>
+    <div id="chart" style="width: 100%; height: 400px;"></div>
+</div>
+
+<hr style="margin: 40px 0;" />
+
+<h2 style="font-weight: bold; font-size: 26px; margin-bottom: 15px;">🤖 AI 練習建議</h2>
+
+<button id="analyzeBtn" class="btn-ai">🚀 執行 AI 分析</button>
+
+<div id="aiResult" class="ai-box">
+    @Html.Raw(ViewBag.AIResult)
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>
+        const stats = @Html.Raw(chartData);
+        const labels = stats.map(x => x.Tag);
+        const data = stats.map(x => x.Count);
+
+        const chartDom = document.getElementById('chart');
+        const myChart = echarts.init(chartDom);
+
+        function renderChart(type) {
+            const option = {
+                title: {
+                    text: '錯題統計',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: labels,
+                    axisLabel: { rotate: 30 }
+                },
+                yAxis: {
+                    type: 'value',
+                    minInterval: 1
+                },
+                series: [{
+                    data: data,
+                    type: type,
+                    smooth: true,
+                    barWidth: '40%',
+                    itemStyle: {
+                        color: '#3e95cd',
+                        borderRadius: [5, 5, 0, 0]
+                    }
+                }]
+            };
+
+            myChart.setOption(option, true);
+        }
+
+        // 初次載入為 bar 圖
+        renderChart('bar');
+
+        document.getElementById("chartTypeSelector").addEventListener("change", function () {
+            const selectedType = this.value;
+            renderChart(selectedType);
+        });
+
+        $("#analyzeBtn").click(function () {
+            $("#analyzeBtn").prop("disabled", true).text("分析中...");
+            $.post("@Url.Action("RunAnalysis", "Home")", {}, function (res) {
+                let resultText = res.analysis || "";
+
+                if (res.success) {
+                    if (resultText.includes("常錯") || resultText.includes("容易錯")) {
+                        resultText = `<div class='alert-bad'>🔥 ${resultText}</div>`;
+                    } else if (resultText.includes("建議多加練習")) {
+                        resultText = `<div class='alert-warn'>⚠️ ${resultText}</div>`;
+                    } else if (resultText.includes("表現良好") || resultText.includes("正確")) {
+                        resultText = `<div class='alert-good'>✅ ${resultText}</div>`;
+                    } else {
+                        resultText = `<div class='alert-default'>${resultText}</div>`;
+                    }
+
+                    $("#aiResult").html(resultText);
+                } else {
+                    alert("分析失敗！");
+                }
+
+                $("#analyzeBtn").prop("disabled", false).text("🚀 執行 AI 分析");
+            });
+        });
+    </script>
+}

@@ -1,0 +1,496 @@
+﻿@model List<BattleCode.Models.MatchViewModel>
+@{
+    ViewBag.Title = "對戰紀錄";
+    var currentUser = Session["DisplayName"]?.ToString();
+    var sortedMatches = Model.OrderByDescending(m => m.StartedAt).ToList();
+}
+
+<style>
+    .page-title {
+        text-align: center;
+        font-weight: 900;
+        margin-bottom: 20px;
+        color: #2c3e50;
+        font-size: 40px;
+    }
+
+    .no-record {
+        text-align: center;
+        font-size: 22px;
+        margin-top: 50px;
+        color: #c0392b;
+        margin-bottom: 30px;
+    }
+
+    .match-list.table-view .match-card {
+        display: table-row !important;
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        margin-bottom: 0;
+    }
+
+    .search-bar {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+        .search-bar select,
+        .search-bar input {
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 180px;
+            transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+            .search-bar select:focus,
+            .search-bar input:focus {
+                outline: none;
+                border-color: #1abc9c;
+                box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.2);
+            }
+
+    .match-list {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        padding: 20px;
+        transition: 0.3s ease;
+    }
+
+    .match-card {
+        display: flex;
+        border-radius: 18px;
+        overflow: hidden;
+        font-weight: bold;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        height: 90px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 15px;
+        border: 2px solid #34495e;
+    }
+
+        .match-card:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    .player-side {
+        width: 25%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        font-size: 24px;
+        color: white;
+        position: relative;
+    }
+
+    .player-left-win {
+        background: linear-gradient(to right, #2ecc71, #a8e6cf);
+    }
+
+    .player-right-win {
+        background: linear-gradient(to left, #2ecc71, #a8e6cf);
+    }
+
+    .player-left-lose {
+        background: linear-gradient(to right, #e74c3c, #f7a1a1);
+    }
+
+    .player-right-lose {
+        background: linear-gradient(to left, #e74c3c, #f7a1a1);
+    }
+
+    .player-left-draw, .player-right-draw {
+        background: linear-gradient(to right, #74b9ff, #dfe6e9);
+    }
+
+    .score-box {
+        font-size: 30px;
+        color: black;
+    }
+
+    .center-block {
+        width: 50%;
+        background-color: #f7e45d;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: black;
+        font-size: 18px;
+        text-align: center;
+    }
+
+        .center-block .mode-line {
+            font-size: 20px;
+        }
+
+        .center-block .time-line {
+            font-size: 16px;
+        }
+
+    .practice-card {
+        background: linear-gradient(to right, #4a74ab, #e0eaf6);
+        border: 2px solid #34495e;
+        height: 80px;
+    }
+
+    .practice-left {
+        width: 25%;
+        background: linear-gradient(to right, #2b5c9c, #6d92c8);
+        color: white;
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        font-size: 24px;
+        padding: 10px 20px;
+    }
+
+    .practice-center {
+        width: 60%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+    }
+
+    .practice-score {
+        width: 15%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        color: black;
+    }
+
+    .filter-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .filter-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 25px;
+        background-color: #dcdde1;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background-color: #f5e325;
+            color: black;
+        }
+
+    .page-title {
+        text-align: center;
+        font-size: 32px;
+        font-weight: 900;
+        margin-bottom: 20px;
+        color: #2c3e50;
+    }
+
+    table.table {
+        border-collapse: collapse;
+        margin-top: 20px;
+        margin-bottom: 50px;
+    }
+
+        table.table th, table.table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        table.table th {
+            background-color: #2f567d;
+            font-weight: bold;
+        }
+
+    #matchContainerTable {
+        border-collapse: collapse;
+        width: 90%;
+        margin: 20px auto 50px auto;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+        #matchContainerTable thead {
+            background-color: #1abc9c;
+            color: white;
+            font-weight: bold;
+        }
+
+        #matchContainerTable th,
+        #matchContainerTable td {
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 16px;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        #matchContainerTable tbody tr:hover {
+            background-color: #f0f9f9;
+            transition: 0.3s;
+        }
+
+        #matchContainerTable td {
+            color: #2c3e50;
+        }
+</style>
+
+
+
+<h2 class="page-title">對戰紀錄</h2>
+
+<div style="text-align:center; margin-bottom: 15px;">
+    <button id="toggle-view" class="filter-btn">切換顯示模式（卡片）</button>
+</div>
+
+<div class="search-bar">
+
+    <select id="search-lang">
+        <option value="">所有語言</option>
+        <option value="Python">Python</option>
+        <option value="Java">Java</option>
+        <option value="C++">C++</option>
+    </select>
+
+    <select id="search-mode">
+        <option value="">所有難度</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+    </select>
+</div>
+
+
+
+<div class="filter-tabs">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="battle">⚔️ 挑戰模式</button>
+    <button class="filter-btn" data-filter="practice">🛡️ 訓練模式</button>
+</div>
+
+
+
+@if (!sortedMatches.Any())
+{
+    <div class="no-record">
+        ❌ 無紀錄
+        <br />
+        <a href="@Url.Action("Start", "Match")" class="btn btn-primary mt-3">立即開始對戰</a>
+    </div>
+}
+else
+{
+    <div class="match-list" id="matchContainer">
+        @foreach (var match in sortedMatches)
+        {
+            var formattedTime = match.StartedAt?.ToString("yyyy-MM-dd HH:mm:ss");
+            var formattedDateOnly = match.StartedAt?.ToString("yyyy-MM-dd");
+
+            if (match.IsPractice)
+            {
+                <a href="@Url.Action("A_details", "Home", new { matchId = match.MatchId })" style="text-decoration: none;">
+                    <div class="match-card practice practice-card" data-time="@formattedDateOnly" data-lang="@match.Language" data-mode="@match.Mode">
+                        <div class="practice-left">@match.Player1Name</div>
+                        <div class="practice-center">
+                            <div>@match.Language &nbsp; <b>@match.Mode</b></div>
+                            <div>@formattedTime</div>
+                        </div>
+                        <div class="practice-score">@match.Player1Score</div>
+                    </div>
+                </a>
+            }
+            else
+            {
+                var isDraw = match.WinnerName == "平手";
+                var player1Win = match.WinnerName == match.Player1Name;
+                var player2Win = match.WinnerName == match.Player2Name;
+                var leftClass = isDraw ? "player-side player-left-draw" : player1Win ? "player-side player-left-win" : "player-side player-left-lose";
+                var rightClass = isDraw ? "player-side player-right-draw" : player2Win ? "player-side player-right-win" : "player-side player-right-lose";
+
+                <a href="@Url.Action("A_details", "Home", new { matchId = match.MatchId })" style="text-decoration: none;">
+                    <div class="match-card battle" data-time="@formattedDateOnly" data-lang="@match.Language" data-mode="@match.Mode">
+                        <div class="@leftClass">
+                            <span>@match.Player1Name</span>
+                            <span class="score-box">@match.Player1Score</span>
+                        </div>
+                        <div class="center-block">
+                            <div class="mode-line">@match.Language &nbsp; @match.Mode</div>
+                            <div class="time-line">@formattedTime</div>
+                        </div>
+                        <div class="@rightClass">
+                            <span class="score-box">@match.Player2Score</span>
+                            <span>@match.Player2Name</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        }
+    </div>
+
+
+    <!-- 表格模式容器 -->
+    <table class="table" id="matchContainerTable" style="display:none; ">
+        <thead>
+            <tr>
+                <th>玩家1</th>
+                <th>分數</th>
+                <th>玩家2</th>
+                <th>分數</th>
+                <th>語言</th>
+                <th>難度</th>
+                <th>時間</th>
+                <th>模式</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            @foreach (var match in sortedMatches)
+            {
+                var formattedTime = match.StartedAt?.ToString("yyyy-MM-dd HH:mm:ss");
+                var formattedDateOnly = match.StartedAt?.ToString("yyyy-MM-dd");
+                var modeType = match.IsPractice ? "practice" : "battle";
+
+                <tr class="match-row"
+                    style="cursor: pointer;"
+                    onclick="location.href='@Url.Action("A_details", "Home", new { matchId = match.MatchId })'"
+                    data-time="@formattedDateOnly"
+                    data-lang="@match.Language"
+                    data-mode="@match.Mode"
+                    data-type="@modeType">
+                    <td>@match.Player1Name</td>
+                    <td>@match.Player1Score</td>
+                    <td>@(match.IsPractice ? "-" : match.Player2Name)</td>
+                    <td>@(match.IsPractice ? "-" : match.Player2Score.ToString())</td>
+                    <td>@match.Language</td>
+                    <td>@match.Mode</td>
+                    <td>@formattedTime</td>
+                    <td>@(match.IsPractice ? "訓練模式" : "挑戰模式")</td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+}
+
+<div id="pagination-controls" style="text-align:center; margin-bottom: 20px;">
+    <button id="prev-page" class="filter-btn">上一頁</button>
+    <span id="page-info" style="margin: 0 15px; font-weight: bold;"></span>
+    <button id="next-page" class="filter-btn">下一頁</button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const buttons = document.querySelectorAll(".filter-btn[data-filter]");
+        const toggleBtn = document.getElementById("toggle-view");
+        const cards = Array.from(document.querySelectorAll(".match-card"));
+        const matchContainer = document.getElementById("matchContainer");
+        const searchLang = document.getElementById("search-lang");
+        const searchMode = document.getElementById("search-mode");
+        const pageInfo = document.getElementById("page-info");
+        const prevPageBtn = document.getElementById("prev-page");
+        const nextPageBtn = document.getElementById("next-page");
+
+        let currentFilter = "all";
+        let currentView = "card"; // or 'table'
+        let currentPage = 1;
+        const itemsPerPage = 5;
+
+        function applyFilters() {
+            const langVal = searchLang.value.toLowerCase();
+            const modeVal = searchMode.value.toLowerCase();
+
+            const cardItems = Array.from(document.querySelectorAll(".match-card"));
+            const tableItems = Array.from(document.querySelectorAll(".match-row"));
+            const allItems = currentView === "card" ? cardItems : tableItems;
+
+            const filtered = allItems.filter(item => {
+                const cardLang = item.getAttribute("data-lang").toLowerCase();
+                const cardMode = item.getAttribute("data-mode").toLowerCase();
+                const cardType = item.getAttribute("data-type") || (item.classList.contains("practice") ? "practice" : "battle");
+
+                const categoryMatch = currentFilter === "all" || cardType === currentFilter;
+                const langMatch = !langVal || cardLang === langVal;
+                const modeMatch = !modeVal || cardMode === modeVal;
+                return categoryMatch && langMatch && modeMatch;
+            });
+
+            // 隱藏所有項目
+            [...cardItems, ...tableItems].forEach(el => el.style.display = "none");
+
+            // 顯示分頁範圍內的項目
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            filtered.slice(start, end).forEach(item => {
+                item.style.display = currentView === "card" ? "flex" : "table-row";
+            });
+
+            // 控制容器顯示
+            document.getElementById("matchContainer").style.display = currentView === "card" ? "block" : "none";
+            document.getElementById("matchContainerTable").style.display = currentView === "table" ? "table" : "none";
+
+            // 更新分頁資訊
+            pageInfo.textContent = `第 ${currentPage} 頁，共 ${Math.ceil(filtered.length / itemsPerPage)} 頁`;
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = end >= filtered.length;
+        }
+
+
+
+
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                buttons.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                currentFilter = btn.getAttribute("data-filter");
+                currentPage = 1;
+                applyFilters();
+            });
+        });
+
+        [searchLang, searchMode].forEach(input => {
+            input.addEventListener("change", () => {
+                currentPage = 1;
+                applyFilters();
+            });
+        });
+
+        toggleBtn.addEventListener("click", () => {
+            currentView = currentView === "card" ? "table" : "card";
+            toggleBtn.textContent = `切換顯示模式（${currentView === "card" ? "卡片" : "表格"}）`;
+            applyFilters();
+        });
+
+        prevPageBtn.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                applyFilters();
+            }
+        });
+
+        nextPageBtn.addEventListener("click", () => {
+            currentPage++;
+            applyFilters();
+        });
+
+        applyFilters();
+    });
+</script>

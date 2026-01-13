@@ -1,0 +1,261 @@
+﻿@{
+    ViewBag.Title = "後台首頁";
+}
+
+<style>
+    .dashboard-row {
+        margin-bottom: 30px;
+    }
+
+    .chart-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        height: 400px;
+        position: relative;
+    }
+    .chart-card1 {
+        background: #fff;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        height: 100px;
+        position: relative;
+    }
+
+    .chart-title {
+        position: absolute;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-weight: bold;
+        font-size: 18px;
+        z-index: 10;
+        background: white;
+        padding: 2px 2px;
+        border-radius: 5px;
+        text-align: center;
+    }
+</style>
+
+<!-- ECharts 載入 -->
+<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+<div class="row dashboard-row">
+    <div class="row dashboard-row">
+        <div class="col-md-3">
+            <div class="chart-card1 text-center">
+                <div class="chart-title">總使用者數</div>
+                <h2 style="margin-top: 40px;" id="userCount">--</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="chart-card1 text-center">
+                <div class="chart-title">總題目數</div>
+                <h2 style="margin-top: 40px;" id="problemCount">--</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="chart-card1 text-center">
+                <div class="chart-title">總對戰練習場次</div>
+                <h2 style="margin-top: 40px;" id="matchCount">--</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="chart-card1 text-center">
+                <div class="chart-title">總提交次數</div>
+                <h2 style="margin-top: 40px;" id="submissionCount">--</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="chart-card">
+            <div class="chart-title">每日對戰與註冊數變化</div>
+            <div id="lineChart" style="width:100%; height:100%;"></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-card">
+            <div class="chart-title">各程式語言使用比例</div>
+            <div id="pieChart" style="width:100%; height:100%;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row dashboard-row">
+    <div class="col-md-6">
+        <div class="chart-card">
+            <div class="chart-title">難度題數與通過率</div>
+            <div id="barChart" style="width:100%; height:100%;"></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-card">
+            <div class="chart-title">每小時熱門對戰時段</div>
+            <div id="heatMap" style="width:100%; height:100%;"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 折線圖
+        fetch('/Home/GetMatchUserStats')
+            .then(res => res.json())
+            .then(data => {
+                const parseDate = timestamp => {
+                    const date = new Date(parseInt(timestamp.replace(/\/Date\((\d+)\)\//, '$1')));
+                    return `${date.getFullYear()}-${date.getMonth() + 1}/${date.getDate()}`;
+                };
+                const datesRaw = [...new Set([...data.matchStats.map(m => m.Date), ...data.userStats.map(u => u.Date)])];
+                const dates = datesRaw.sort().map(parseDate);
+                const matchData = datesRaw.map(d => data.matchStats.find(x => x.Date === d)?.MatchCount || 0);
+                const userData = datesRaw.map(d => data.userStats.find(x => x.Date === d)?.UserCount || 0);
+                const lineChart = echarts.init(document.getElementById('lineChart'));
+                lineChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    legend: { data: ['對戰數', '註冊數'], top: 30 },
+                    grid: { top: 60, left: 50, right: 30, bottom: 40 },
+                    xAxis: { type: 'category', data: dates },
+                    yAxis: { type: 'value' },
+                    series: [
+                        { name: '對戰數', type: 'line', data: matchData },
+                        { name: '註冊數', type: 'line', data: userData }
+                    ]
+                });
+            });
+
+        // 圓餅圖
+        fetch('/Home/GetLanguageStats')
+            .then(res => res.json())
+            .then(data => {
+                const pieChart = echarts.init(document.getElementById('pieChart'));
+                pieChart.setOption({
+                    tooltip: { trigger: 'item' },
+                    legend: { bottom: 10 },
+                    series: [{
+                        name: '語言',
+                        type: 'pie',
+                        radius: '50%',
+                        data: data.map(d => ({ name: d.Language, value: d.Count }))
+                    }]
+                });
+            });
+
+        // 長條圖 + 折線圖
+        fetch('/Home/GetDifficultyStats')
+            .then(res => res.json())
+            .then(data => {
+                const difficultyOrder = ['Easy', 'Medium', 'Hard'];
+                const orderedData = difficultyOrder.map(level => data.find(d => d.Difficulty === level)).filter(Boolean);
+
+                const difficulties = orderedData.map(d => d.Difficulty);
+                const totalProblems = orderedData.map(d => d.TotalProblems);
+                const correctSubmissions = orderedData.map(d => d.CorrectSubmissions);
+                const passRates = orderedData.map(d => d.TotalProblems > 0 ? +(d.CorrectSubmissions / d.TotalProblems).toFixed(2) : 0);
+
+                const barChart = echarts.init(document.getElementById('barChart'));
+                barChart.setOption({
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: params => {
+                            let tooltip = `${params[0].axisValue}<br/>`;
+                            params.forEach(item => {
+                                tooltip += `${item.marker} ${item.seriesName}: ${item.data}<br/>`;
+                            });
+                            return tooltip;
+                        }
+                    },
+                    legend: { data: ['題目總數', '正確題數', '通過率'], top: 30 },
+                    grid: { top: 60, left: 50, right: 50, bottom: 40 },
+                    xAxis: { type: 'category', data: difficulties },
+                    yAxis: [
+                        { type: 'value', name: '題數' },
+                        { type: 'value', name: '通過率', min: 0, max: 1 }
+                    ],
+                    series: [
+                        { name: '題目總數', type: 'bar', data: totalProblems },
+                        { name: '正確題數', type: 'line', data: correctSubmissions },
+                        { name: '通過率', type: 'line', yAxisIndex: 1, data: passRates }
+                    ]
+                });
+            });
+
+        // 熱力圖 (橫向堆疊)
+        fetch('/Home/GetHeatMapStats')
+            .then(res => res.json())
+            .then(data => {
+                const days = ['日', '一', '二', '三', '四', '五', '六'];
+                const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+                const heatMatrix = Array(7).fill(0).map(() => Array(24).fill(0));
+                data.forEach(d => { heatMatrix[d.DayOfWeek][d.Hour] = d.Count; });
+                const datasets = days.map((day, i) => ({
+                    name: `週${day}`,
+                    type: 'bar',
+                    stack: 'total',
+                    emphasis: { focus: 'series' },
+                    data: heatMatrix[i]
+                }));
+                const heatChart = echarts.init(document.getElementById('heatMap'));
+                heatChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    legend: { top: 30 },
+                    grid: { top: 60, left: 50, right: 30, bottom: 40 },
+                    xAxis: { type: 'category', data: hours },
+                    yAxis: { type: 'value' },
+                    series: datasets
+                });
+            });
+        // 總覽數據卡片填值
+        fetch('/Home/GetOverallStats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('matchCount').innerText = data.matchCount;
+                document.getElementById('problemCount').innerText = data.problemCount;
+                document.getElementById('submissionCount').innerText = data.submissionCount;
+                document.getElementById('userCount').innerText = data.userCount;
+            });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    @if (TempData["LoginSuccess"] != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'success',
+                title: '登入成功',
+                text: '@TempData["LoginSuccess"]',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </text>
+    }
+    else if (TempData["LoginError"] != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'error',
+                title: '登入失敗',
+                text: '@TempData["LoginError"]'
+            });
+        </text>
+    }
+    else if (TempData["RegisterSuccess"] != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'success',
+                title: '註冊成功',
+                text: '@TempData["RegisterSuccess"]',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </text>
+    }
+
+        
+
+    </script>
+}

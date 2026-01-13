@@ -1,0 +1,200 @@
+﻿@{
+    ViewBag.Title = "聊天室";
+    var currentUser = Session["DisplayName"]?.ToString() ?? "匿名";
+}
+
+<style>
+    .chat-container {
+        max-width: 100%;
+        margin: 10px auto;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-header {
+        font-size: 30px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+
+    .message-list {
+        list-style: none;
+        padding: 0;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .message-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .message-left {
+        flex-direction: row;
+    }
+
+    .message-right {
+        flex-direction: row-reverse;
+    }
+
+    .message-meta {
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        margin-bottom: 4px;
+        color: #333;
+        font-size: 15px;
+        gap: 10px;
+    }
+
+        .message-meta .time {
+            font-size: 12px;
+            font-weight: normal;
+            color: #888;
+        }
+
+    .message-bubble {
+        max-width: 100%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 16px;
+        line-height: 1.4;
+        position: relative;
+        word-break: break-word; /* ✅ 允許換行 */
+        white-space: normal; /* ✅ 可自動斷行 */
+    }
+
+    .bubble-left {
+        background: #ffffff;
+        border: 1px solid #ccc;
+    }
+
+    .bubble-right {
+        background: #b0f2c2;
+        color: #1e1e1e;
+    }
+
+    .chat-input-area {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        font-size: 20px;
+    }
+
+        .chat-input-area input {
+            max-width: 100%;
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 20px;
+        }
+
+    #sendBtn {
+        padding: 10px 16px;
+        background-color: #355c7d;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="chat-container">
+    <div class="chat-header">聊天室</div>
+
+    <ul class="message-list" id="chatLog"></ul>
+
+    <div class="chat-input-area">
+        <input type="hidden" id="userInput" value="@currentUser" />
+        <input type="text" id="messageInput" placeholder="輸入訊息" />
+        <button id="sendBtn">送出</button>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const currentUser = '@(Session["DisplayName"] ?? "匿名")';
+        var connection = $.hubConnection();
+        var chatHub = connection.createHubProxy('chatHub');
+
+        // ✅ 接收訊息事件
+        chatHub.on('broadcastMessage', function (user, message) {
+            const isSelf = user === currentUser;
+            const alignmentClass = isSelf ? 'message-right' : 'message-left';
+            const bubbleClass = isSelf ? 'bubble-right' : 'bubble-left';
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+
+            const html = `
+                <li class="message-item ${alignmentClass}">
+                    <div style="display: flex; flex-direction: column; align-items: ${isSelf ? 'flex-end' : 'flex-start'};">
+                     ${user}
+                    <div class="message-bubble ${bubbleClass}">${message}</div>   
+                    <div class="message-meta">
+                           <span class="time">${timeString}</span>
+                        </div>
+                       
+                    </div>
+                </li>`;
+
+            $('#chatLog').append(html);
+            $('.message-list').scrollTop($('#chatLog')[0].scrollHeight);
+        });
+
+        // ✅ 建立連線並廣播歡迎訊息
+        connection.start().done(function () {
+            // 廣播「歡迎 xx 加入聊天室」
+            chatHub.invoke('send', '系統公告', `歡迎 ${currentUser} 加入聊天室 👋`);
+
+            // 點擊送出
+            $('#sendBtn').click(function () {
+                const user = $('#userInput').val();
+                const message = $('#messageInput').val().trim();
+
+                if (message === '') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '請輸入訊息',
+                        text: '訊息內容不能是空白',
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
+
+                chatHub.invoke('send', user, message);
+                $('#messageInput').val('').focus();
+
+                Swal.fire({
+                    toast: true,
+                    icon: 'success',
+                    title: '已送出',
+                    position: 'bottom-end',
+                    showConfirmButton: false,
+                    timer: 1000
+                });
+            });
+
+            // Enter 鍵送出
+            $('#messageInput').keypress(function (e) {
+                if (e.which === 13) {
+                    $('#sendBtn').click();
+                }
+            });
+        }).fail(function () {
+            Swal.fire({
+                icon: 'error',
+                title: '連線失敗',
+                text: '無法連線到聊天室伺服器'
+            });
+        });
+    </script>
+}

@@ -1,0 +1,336 @@
+﻿@{
+    ViewBag.Title = "首頁";
+    var username = Session["DisplayName"]?.ToString();
+}
+
+<style>
+        body {
+            margin: 0;
+            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+        }
+
+        .custom-carousel {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 50vh;
+            margin: 40px auto;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+
+
+        .custom-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            filter: brightness(0.7);
+            border-radius: 20px;
+        }
+
+
+        .custom-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .custom-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+
+        .custom-caption {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            text-align: center;
+            color: white;
+            transform: translateY(-50%);
+            z-index: 3;
+            animation: fadeInUp 1s ease-in-out;
+        }
+
+        .custom-caption h1 {
+            font-size: 60px;
+            font-weight: bold;
+            text-shadow: 2px 2px 10px black;
+            margin-bottom: 10px;
+        }
+
+        .custom-caption p {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .custom-caption .btn-start {
+            padding: 14px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #f9ca24;
+            color: #1e1e1e;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .custom-caption .btn-start:hover {
+            background-color: #ffe600;
+            transform: scale(1.05);
+        }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(-50%); }
+    }
+
+    .arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 4;
+        background-color: rgba(0, 0, 0, 0.4);
+        color: white;
+        font-size: 24px;
+        padding: 12px 14px;
+        cursor: pointer;
+        user-select: none;
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+    }
+
+        .arrow:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+
+        .arrow.left {
+            left: 10px;
+        }
+
+        .arrow.right {
+            right: 10px;
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            z-index: 4;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+
+        .carousel-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin: 0 6px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .carousel-dot.active {
+            background-color: #f9ca24;
+        }
+
+            .carousel-dot:hover {
+                background-color: #ffe600;
+            }
+
+
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 60px auto;
+            text-align: center;
+            max-width: 1000px;
+        }
+
+        .feature {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .feature h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .feature p {
+            color: #555;
+        }
+</style>
+
+<!-- Hero Carousel -->
+<div class="custom-carousel" id="customCarousel">
+    <div class="custom-slide" style="background-image: url('/Content/img/carousel/1.png');"></div>
+    <div class="custom-slide" style="background-image: url('/Content/img/carousel/2.png'); "></div>
+    <div class="custom-slide" style="background-image: url('/Content/img/carousel/3.png'); "></div>
+
+    <div class="custom-overlay"></div>
+
+    <div class="custom-caption" id="carouselCaption">
+        <h1>BattleCode 對戰平台</h1>
+        <p>立即挑戰 Python 對戰遊戲，結合 AI 教學與排名競賽！</p>
+        <a href="/Match/Start" class="btn-start">立即對戰</a>
+    </div>
+
+    <div class="arrow left" onclick="prevSlide()">❮</div>
+    <div class="arrow right" onclick="nextSlide()">❯</div>
+    <div class="carousel-dots" id="carouselDots"></div>
+</div>
+
+<!-- Features -->
+<div class="features">
+    <div class="feature">
+        <h3>⏰ 即時對戰</h3>
+        <p>隨時進入對戰模式，與 AI 或其他玩家一決高下。</p>
+    </div>
+    <div class="feature">
+        <h3>✨ AI 判題</h3>
+        <p>自動評測程式碼，精準分析正確率與錯誤原因。</p>
+    </div>
+    <div class="feature">
+        <h3>🌟 排行榜制度</h3>
+        <p>刺激競爭、強化動機，看看你在全服第幾名！</p>
+    </div>
+</div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    @if (TempData["LoginSuccess"] != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'success',
+                title: '登入成功',
+                text: '@TempData["LoginSuccess"]',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </text>
+    }
+    else if (TempData["LoginError"] != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'error',
+                title: '登入失敗',
+                text: '@TempData["LoginError"]'
+            });
+        </text>
+    }
+    else if (TempData["RegisterSuccess"] != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'success',
+                title: '註冊成功',
+                text: '@TempData["RegisterSuccess"]',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </text>
+    }
+</script>
+
+<!-- 輪播控制 -->
+<script>
+    const slides = document.querySelectorAll('.custom-slide');
+    const caption = document.getElementById('carouselCaption');
+    const dotsContainer = document.getElementById('carouselDots');
+
+    const captions = [
+        {
+            title: 'BattleCode 對戰平台',
+            desc: '立即挑戰 Python 對戰遊戲，結合 AI 教學與排名競賽！',
+            btnText: '立即對戰',
+            btnLink: '/Match/Start'
+        },
+        {
+            title: '學習程式挑戰自我',
+            desc: '寫程式不孤單，一起對戰進步更快！',
+            btnText: '加入挑戰',
+            btnLink: '/Practice/Start'
+        },
+        {
+            title: 'AI 評測讓你更強',
+            desc: '用資料與對戰結果，找到你的成長曲線',
+            btnText: '前往分析',
+            btnLink: '/Home/AIAnalysis'
+        }
+    ];
+
+    let currentIndex = 0;
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+            if (i === index) slide.classList.add('active');
+        });
+
+        // 更新文字與按鈕
+        caption.innerHTML = `
+            <h1>${captions[index].title}</h1>
+            <p>${captions[index].desc}</p>
+            <a href="${captions[index].btnLink}" class="btn-start">${captions[index].btnText}</a>
+        `;
+
+        // 更新指示點
+        const dots = document.querySelectorAll('.carousel-dot');
+        dots.forEach(dot => dot.classList.remove('active'));
+        dots[index].classList.add('active');
+    }
+
+    function nextSlide() {
+        currentIndex = (currentIndex + 1) % slides.length;
+        showSlide(currentIndex);
+    }
+
+    function prevSlide() {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        showSlide(currentIndex);
+    }
+
+    function createDots() {
+        for (let i = 0; i < slides.length; i++) {
+            const dot = document.createElement('span');
+            dot.classList.add('carousel-dot');
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => {
+                currentIndex = i;
+                showSlide(currentIndex);
+            });
+            dotsContainer.appendChild(dot);
+        }
+    }
+
+    createDots();
+    showSlide(currentIndex);
+    setInterval(nextSlide, 5000); // 每 5 秒切換
+</script>

@@ -1,0 +1,15 @@
+﻿@font-face {
+    font-family: "openhuninn";
+    src: url("/fonts/openhuninn.ttf") format("truetype");
+    unicode-range: U+4E00-9FFF; /* 中文 */
+}
+
+@font-face {
+    font-family: "Chewy";
+    src: url("/fonts/Chewy.ttf") format("truetype");
+    unicode-range: U+0000-007F; /* 英文/數字 */
+}
+
+body {
+    font-family: "openhuninn", "Chewy", sans-serif;
+}
